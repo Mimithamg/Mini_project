@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:parking_app/views/login_screen.dart';
+import 'package:parking_app/views/login_page';
+
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return GetMaterialApp(
-      theme: ThemeData(fontFamily: 'Roboto'), // ThemeData
-
-      home: const LoginScreen(),
-    ); // GetMaterialApp
+    return MaterialApp(
+      title: 'Parking App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: LoginPage(),
+    );
   }
 }
