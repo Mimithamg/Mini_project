@@ -49,6 +49,7 @@ class LoginPage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   // Add login functionality
+                  Navigator.pushNamed(context, '/otp_verification');
                 },
                 child: Text('Login'),
               ),
@@ -67,3 +68,4 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
+
