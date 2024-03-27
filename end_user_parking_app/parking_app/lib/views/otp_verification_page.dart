@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class OtpVerificationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,6 @@ class OtpVerificationPage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   // Add OTP verification functionality
-                  Navigator.pushNamed(context, '/home');
                 },
                 child: Text('Verify OTP'),
               ),

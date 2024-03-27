@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class LoginPage extends StatelessWidget {
+  // GlobalKey for accessing form state
+  late String _mobileNumber = '';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,6 +38,10 @@ class LoginPage extends StatelessWidget {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.phone,
+                onChanged: (value) {
+                  _mobileNumber = value;
+                  // Store the mobile number value
+                },
               ),
               SizedBox(height: 20.0),
               TextFormField(
@@ -48,8 +55,22 @@ class LoginPage extends StatelessWidget {
               SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () {
-                  // Add login functionality
-                  Navigator.pushNamed(context, '/otp_verification');
+                  print(_mobileNumber);
+
+                  int count = _mobileNumber.length;
+                  print(count);
+
+                  if (count == 10) {
+                    // Navigation
+                    Navigator.pushNamed(context, '/otp_verification');
+                  } else {
+                    // Handle invalid mobile number
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text(
+                              'Please enter a valid 10-digit mobile number')),
+                    );
+                  }
                 },
                 child: Text('Login'),
               ),
@@ -68,4 +89,3 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
-
