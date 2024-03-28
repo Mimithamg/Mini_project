@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:parking_app/repositary/authentication_repositary/signup_email_password_failure.dart';
+import 'package:parking_app/views/home_page.dart';
 import 'package:parking_app/views/login_page.dart';
 
 class AuthenticationRepository extends GetxController {
@@ -18,18 +19,22 @@ class AuthenticationRepository extends GetxController {
   }
 
   _setInitialScreen(User? user) {
-    user == null ? Get.offAll(() => LoginPage()) : _navigateToHome(); // Navigate to home page after login
+    user == null
+        ? Get.offAll(() => LoginPage())
+        : _navigateToHome(); // Navigate to home page after login
   }
 
   _navigateToHome() {
     // Add your home page navigation logic here
     // For example:
-    // Get.offAll(() => const HomePage());
+    Get.offAll(() => HomePage());
   }
 
-  Future<void> createUserWithEmailAndPassword(String email, String password) async {
+  Future<void> createUserWithEmailAndPassword(
+      String email, String password) async {
     try {
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
     } on FirebaseAuthException catch (e) {
       final ex = SignUpWithEmailAndPasswordFailure.code(e.code);
       print('FIREBASE AUTH EXCEPTION - ${ex.message}');

@@ -64,6 +64,7 @@ class LoginPage extends StatelessWidget {
                   print('Password: $_password');
 
                   if (_email.isNotEmpty && _password.isNotEmpty) {
+                    Navigator.pushNamed(context, '/home');
                     // Perform login logic
                     // Example: Authenticate user with email and password
                   } else {
