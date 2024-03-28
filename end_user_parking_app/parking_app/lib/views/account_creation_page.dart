@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:parking_app/controllers/signup_controller.dart';
 
 class AccountCreationPage extends StatefulWidget {
   @override
@@ -18,6 +22,8 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(SignUpController());
+    final _formKey = GlobalKey<FormState>();
     return Scaffold(
       appBar: AppBar(
         title: Text('Create Account'),
@@ -25,7 +31,9 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
       body: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.all(20.0),
-          child: Column(
+          child:Form( 
+            key: _formKey,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
@@ -36,6 +44,7 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
                         : null;
                   });
                 },
+                controller: controller.firstName,
                 decoration: InputDecoration(
                   labelText: 'First Name',
                   prefixIcon: Icon(Icons.person),
@@ -52,6 +61,7 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
                         : null;
                   });
                 },
+                controller: controller.lastName,
                 decoration: InputDecoration(
                   labelText: 'Last Name',
                   prefixIcon: Icon(Icons.person),
@@ -61,6 +71,7 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
               ),
               SizedBox(height: 20.0),
               TextFormField(
+                controller: controller.email,
                 decoration: InputDecoration(
                   labelText: 'Email Address',
                   prefixIcon: Icon(Icons.email),
@@ -77,6 +88,7 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
                         : 'Please enter a valid mobile number';
                   });
                 },
+                controller: controller.phoneNo,
                 decoration: InputDecoration(
                   labelText: 'Mobile Number',
                   prefixIcon: Icon(Icons.phone),
@@ -97,6 +109,7 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
               ),
               SizedBox(height: 20.0),
               TextFormField(
+                controller: controller.password,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: Icon(Icons.lock),
@@ -106,9 +119,25 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
               ),
               SizedBox(height: 20.0),
               ElevatedButton(
-                onPressed: () {
-                  // Add account creation functionality
-                  Navigator.pushNamed(context, '/otp_verification');
+                onPressed: () async {
+                  if(_formKey.currentState!.validate()){
+                    try {
+                      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                        email: controller.email.text.trim(),
+                        password: controller.password.text.trim(),
+                      );
+                      // Registration successful, navigate to verification page
+                      Navigator.pushNamed(context, '/otp_verification');
+                    } catch (e) {
+                      // Registration failed, handle error
+                      print('Error registering user: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Registration failed. Please try again.'),
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: Text('Create Account'),
               ),
@@ -124,7 +153,8 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
           ),
         ),
       ),
-    );
+    ),
+    ); 
   }
 
   bool isValidPhoneNumber(String value) {

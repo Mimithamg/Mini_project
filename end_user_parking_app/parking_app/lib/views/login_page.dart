@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class LoginPage extends StatelessWidget {
-  // GlobalKey for accessing form state
-  late String _mobileNumber = '';
+  late String _email = '';
+  late String _password = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,14 +34,14 @@ class LoginPage extends StatelessWidget {
               SizedBox(height: 20.0),
               TextFormField(
                 decoration: InputDecoration(
-                  labelText: 'Mobile Number',
-                  prefixIcon: Icon(Icons.phone),
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.emailAddress,
                 onChanged: (value) {
-                  _mobileNumber = value;
-                  // Store the mobile number value
+                  _email = value;
+                  // Store the email value
                 },
               ),
               SizedBox(height: 20.0),
@@ -51,24 +52,26 @@ class LoginPage extends StatelessWidget {
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
+                onChanged: (value) {
+                  _password = value;
+                  // Store the password value
+                },
               ),
               SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () {
-                  print(_mobileNumber);
+                  print('Email: $_email');
+                  print('Password: $_password');
 
-                  int count = _mobileNumber.length;
-                  print(count);
-
-                  if (count == 10) {
-                    // Navigation
-                    Navigator.pushNamed(context, '/otp_verification');
+                  if (_email.isNotEmpty && _password.isNotEmpty) {
+                    // Perform login logic
+                    // Example: Authenticate user with email and password
                   } else {
-                    // Handle invalid mobile number
+                    // Handle empty email or password
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                          content: Text(
-                              'Please enter a valid 10-digit mobile number')),
+                        content: Text('Please enter email and password'),
+                      ),
                     );
                   }
                 },

@@ -1,9 +1,15 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:parking_app/firebase_options.dart';
+import 'package:parking_app/repositary/authentication_repositary.dart';
 import 'package:parking_app/views/login_page.dart'; // Import other pages as needed
 import 'package:parking_app/views/account_creation_page.dart'; // Import AccountCreationPage
-import 'package:parking_app/views/otp_verification_page.dart'; // Import OtpVerificationPage
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform).then((value)=>Get.put(AuthenticationRepository()));
   runApp(MyApp());
 }
 
@@ -21,7 +27,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginPage(),
         '/account_creation': (context) => AccountCreationPage(), // Use AccountCreationPage class
-        '/otp_verification': (context) => OtpVerificationPage(), // Use OtpVerificationPage class
+        // Use OtpVerificationPage class
         // Add more routes as needed
       },
     );
