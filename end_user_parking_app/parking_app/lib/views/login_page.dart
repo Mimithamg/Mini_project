@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatelessWidget {
-  late String _email = '';
-  late String _password = '';
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class LoginPage extends StatelessWidget {
             children: [
               SizedBox(height: 50.0),
               Image.asset(
-                'assets/car.png', // Replace 'assets/logo.png' with your logo path
+                'assets/car.png',
                 height: 150.0,
                 width: 150.0,
                 fit: BoxFit.contain,
@@ -33,42 +33,33 @@ class LoginPage extends StatelessWidget {
               ),
               SizedBox(height: 20.0),
               TextFormField(
+                controller: emailController,
                 decoration: InputDecoration(
                   labelText: 'Email',
                   prefixIcon: Icon(Icons.email),
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.emailAddress,
-                onChanged: (value) {
-                  _email = value;
-                  // Store the email value
-                },
               ),
               SizedBox(height: 20.0),
               TextFormField(
+                controller: passwordController,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: Icon(Icons.lock),
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-                onChanged: (value) {
-                  _password = value;
-                  // Store the password value
-                },
               ),
               SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () {
-                  print('Email: $_email');
-                  print('Password: $_password');
+                  final email = emailController.text.trim();
+                  final password = passwordController.text.trim();
 
-                  if (_email.isNotEmpty && _password.isNotEmpty) {
-                    Navigator.pushNamed(context, '/home');
-                    // Perform login logic
-                    // Example: Authenticate user with email and password
+                  if (email.isNotEmpty && password.isNotEmpty) {
+                    login(email, password, context);
                   } else {
-                    // Handle empty email or password
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Please enter email and password'),
@@ -91,5 +82,24 @@ class LoginPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void login(String email, String password, BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Login successful, navigate to home page
+      Navigator.pushNamed(context, '/home');
+    } catch (e) {
+      // Login failed, handle error
+      print('Error logging in user: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login failed. Please try again.'),
+        ),
+      );
+    }
   }
 }
