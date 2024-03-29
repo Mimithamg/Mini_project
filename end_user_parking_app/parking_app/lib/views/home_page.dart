@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:parking_app/views/search_page.dart';
 import 'package:parking_app/views/search_bar.dart';
 
 class HomePage extends StatelessWidget {
@@ -84,14 +84,26 @@ class HomePage extends StatelessWidget {
                   },
                   child: Text('Nearby Spaces'),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    getDocuments();
+                //ElevatedButton(
+                 // onPressed: () {
+                    //getDocuments();
                     // Handle Search option
                     // Navigate to search screen or perform related actions
-                  },
-                  child: Text('Search'),
-                ),
+                  //},
+
+
+                  //child: Text('Search'),
+                //),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SearchPage()),
+                        );
+                        },
+            child: Text('Search'),
+),
+
               ],
             ),
           ),
