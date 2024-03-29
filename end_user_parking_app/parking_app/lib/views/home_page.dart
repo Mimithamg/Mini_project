@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:parking_app/views/search_bar.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -23,7 +25,12 @@ class HomePage extends StatelessWidget {
                 ListTile(
                   title: Text('Profile'),
                   onTap: () {
-                    // Handle navigation to option 1 page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SearchBarr(),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
@@ -82,6 +89,7 @@ class HomePage extends StatelessWidget {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    getDocuments();
                     // Handle Search option
                     // Navigate to search screen or perform related actions
                   },
@@ -179,5 +187,20 @@ class HomePage extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> getDocuments() async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection(
+              'PARKING SPACES') // Replace 'your_collection_name' with your collection name
+          .get();
+      // Iterate through the documents
+      querySnapshot.docs.forEach((doc) {
+        print(doc.data()); // Access document data
+      });
+    } catch (e) {
+      print("Error: $e");
+    }
   }
 }
