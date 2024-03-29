@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:parking_app/views/search_page.dart';
 import 'package:parking_app/views/search_bar.dart';
 
 class HomePage extends StatelessWidget {
@@ -83,16 +84,28 @@ class HomePage extends StatelessWidget {
                     // Handle Nearby Spaces option
                     // Navigate to nearby spaces screen or perform related actions
                   },
-                  child: Text('Nearby Spaces'),
+                  child: const Text('Nearby Spaces'),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    getDocuments();
+                //ElevatedButton(
+                 // onPressed: () {
+                    //getDocuments();
                     // Handle Search option
                     // Navigate to search screen or perform related actions
-                  },
-                  child: Text('Search'),
-                ),
+                  //},
+
+
+                  //child: Text('Search'),
+                //),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SearchPage()),
+                        );
+                        },
+            child: Text('Search'),
+),
+
               ],
             ),
           ),

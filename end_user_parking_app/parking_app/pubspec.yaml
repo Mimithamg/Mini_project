@@ -80,6 +80,7 @@ flutter:
     - assets/otp.png
     - assets/car.png
     - assets/map.html
+    - assets/parking.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
