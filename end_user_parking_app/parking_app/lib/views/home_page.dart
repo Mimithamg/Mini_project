@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:parking_app/views/search_bar.dart';
 
 class HomePage extends StatelessWidget {
@@ -66,8 +66,9 @@ class HomePage extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
+         Expanded(
             child: Container(
+              child: content(),
               // Add your Google Map widget here
               color: Colors.grey, // Placeholder color
             ),
@@ -99,7 +100,18 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+  Widget content(){
+  return FlutterMap(options: MapOptions(
+         initialCenter: LatLng(10.5276,76.2144),
+         initialZoom: 15,
+         interactionOptions: const InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom), 
 
+  ), children: [
+    OpenStreetMapTileLater,
+  ],
+  );
+}
+  
   Future<void> getDocuments() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -114,4 +126,10 @@ class HomePage extends StatelessWidget {
       print("Error: $e");
     }
   }
+
 }
+TileLayer get OpenStreetMapTileLater=>TileLayer(
+   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+   userAgentPackageName: 'dev.fleaflet,flutter_map.example',
+     
+);

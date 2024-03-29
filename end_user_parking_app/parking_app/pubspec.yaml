@@ -46,6 +46,8 @@ dependencies:
   cloud_firestore: ^4.15.10
   webview_flutter: ^4.7.0
   flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+
   
   
 
