@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:parking_app/views/search_bar.dart';
 
 class HomePage extends StatelessWidget {
@@ -8,7 +9,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Map'),
+        title: Text('PARK.IN'),
       ),
       drawer: Drawer(
         child: Stack(
@@ -35,9 +36,6 @@ class HomePage extends StatelessWidget {
                 ),
                 ListTile(
                   title: Text('History'),
-                  onTap: () {
-                    // Handle navigation to option 2 page
-                  },
                 ),
                 Divider(),
                 ListTile(
@@ -81,7 +79,6 @@ class HomePage extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    _showLocationPermissionDialog(context);
                     // Handle Nearby Spaces option
                     // Navigate to nearby spaces screen or perform related actions
                   },
@@ -100,92 +97,6 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showLocationPermissionDialog(BuildContext context) async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Location Permission'),
-          content: Text('Do you want to turn on location services?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                LocationPermission permission =
-                    await Geolocator.requestPermission();
-                if (permission == LocationPermission.always ||
-                    permission == LocationPermission.whileInUse) {
-                  bool serviceEnabled =
-                      await Geolocator.isLocationServiceEnabled();
-                  if (!serviceEnabled) {
-                    bool serviceTurnedOn =
-                        await Geolocator.openLocationSettings();
-                    if (serviceTurnedOn) {
-                      _getCurrentLocation(context);
-                    } else {
-                      print('Location service was not turned on.');
-                    }
-                  } else {
-                    _getCurrentLocation(context);
-                  }
-                } else {
-                  print('Location permission was not granted.');
-                }
-              },
-              child: Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('No'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _getCurrentLocation(BuildContext context) async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Location services are disabled, prompt the user to enable them.
-      _showLocationServiceDisabledDialog(context);
-    } else {
-      // Location services are enabled, attempt to get the current location.
-      try {
-        Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
-        print('Current Location: ${position.latitude}, ${position.longitude}');
-      } catch (e) {
-        print('Error getting current location: $e');
-      }
-    }
-  }
-
-  void _showLocationServiceDisabledDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Location Service Disabled'),
-          content: Text('Please enable location services to continue.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Optionally navigate to location settings
-                //_navigateToLocationSettings();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
     );
   }
 
