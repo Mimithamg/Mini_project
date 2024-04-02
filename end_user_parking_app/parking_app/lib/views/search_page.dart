@@ -5,11 +5,19 @@ class ParkingArea {
   final String name;
   final double rating;
   final String workingTime;
+  final int availabilityTwoWheelers;
+  final int availabilityFourWheelers;
+  final double feePerHourTwoWheelers;
+  final double feePerHourFourWheelers;
 
   ParkingArea({
     required this.name,
     required this.rating,
     required this.workingTime,
+    required this.availabilityTwoWheelers,
+    required this.availabilityFourWheelers,
+    required this.feePerHourTwoWheelers,
+    required this.feePerHourFourWheelers,
   });
 }
 
@@ -38,6 +46,10 @@ class _SearchPageState extends State<SearchPage> {
         name: doc['space_name'],
         rating: doc['rating'].toDouble(),
         workingTime: doc['working_time'],
+        availabilityTwoWheelers: doc['availability_two'].toInt(),
+        availabilityFourWheelers: doc['availability_four'].toInt(),
+        feePerHourTwoWheelers: doc['fee_ph_two'].toDouble(),
+        feePerHourFourWheelers: doc['fee_ph_four'].toDouble(),
       ));
     });
 
@@ -45,8 +57,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void navigateToParkingDetailsPage(ParkingArea area) {
-    // Navigate to parking details page
-    // Example:
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -95,8 +105,7 @@ class _SearchPageState extends State<SearchPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CircleAvatar(
-                          backgroundImage:
-                              AssetImage('assets/parking.png'),
+                          backgroundImage: AssetImage('assets/parking.png'),
                         ),
                         SizedBox(width: 16),
                         Expanded(
@@ -157,26 +166,63 @@ class ParkingDetailsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(area.name),
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Image.asset(
+              'assets/parking.png',
+              height: 200,
+              fit: BoxFit.cover,
+            ),
+            SizedBox(height: 16),
             Text(
               'Rating: ${area.rating}',
               style: TextStyle(fontSize: 20),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 8),
             Text(
               'Working Time: ${area.workingTime}',
               style: TextStyle(fontSize: 20),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
+            SizedBox(height: 8),
+            Text(
+              'Available Spaces for Four Wheelers: ${area.availabilityFourWheelers}',
+              style: TextStyle(fontSize: 20),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Available Spaces for Two Wheelers: ${area.availabilityTwoWheelers}',
+              style: TextStyle(fontSize: 20),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Fee per Hour for Two Wheelers: \$${area.feePerHourTwoWheelers}',
+              style: TextStyle(fontSize: 20),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Fee per Hour for Four Wheelers: \$${area.feePerHourFourWheelers}',
+              style: TextStyle(fontSize: 20),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton.icon(
               onPressed: () {
-                // Go back to the previous page
-                Navigator.pop(context);
+                // Handle direction button
               },
-              child: Text('Go Back'),
+              icon: Icon(Icons.directions, color: Colors.green),
+              label: Text(
+                'Get Directions',
+                style: TextStyle(color: Colors.green),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
             ),
           ],
         ),
