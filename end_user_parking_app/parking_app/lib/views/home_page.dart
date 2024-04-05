@@ -28,12 +28,12 @@ class HomePage extends StatelessWidget {
                 ListTile(
                   title: Text('Profile'),
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SearchBarr(),
-                      ),
-                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => MyWidget(),
+                    //   ),
+                    // );
                   },
                 ),
                 ListTile(

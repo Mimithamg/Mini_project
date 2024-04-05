@@ -9,16 +9,16 @@ class NearbyLocationsPage extends StatefulWidget {
 
 class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
   late Position _currentPosition = Position(
-    latitude: 0.0, // Provide a default latitude
-    longitude: 0.0, // Provide a default longitude
-    timestamp: DateTime.now(), // Provide a default timestamp
-    accuracy: 0.0, // Provide a default accuracy
-    altitude: 0.0, // Provide a default altitude
-    altitudeAccuracy: 0.0, // Provide a default altitudeAccuracy
-    heading: 0.0, // Provide a default heading
-    headingAccuracy: 0.0, // Provide a default headingAccuracy
-    speed: 0.0, // Provide a default speed
-    speedAccuracy: 0.0, // Provide a default speedAccuracy
+    latitude: 0.0,
+    longitude: 0.0,
+    timestamp: DateTime.now(),
+    accuracy: 0.0,
+    altitude: 0.0,
+    altitudeAccuracy: 0.0,
+    heading: 0.0,
+    headingAccuracy: 0.0,
+    speed: 0.0,
+    speedAccuracy: 0.0,
   );
 
   List<Map<String, dynamic>> _nearbyLocations = [];
@@ -27,7 +27,7 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
   void initState() {
     super.initState();
     _getCurrentLocation();
-    _fetchLocationsFromFirebase(); // Fetch locations from Firestore
+    _fetchLocationsFromFirebase();
   }
 
   void _getCurrentLocation() async {
@@ -56,7 +56,6 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
           'longitude': location.longitude,
         });
       });
-      print('Fetched locations: $locations');
       setState(() {
         _nearbyLocations = locations;
       });
@@ -86,19 +85,38 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
 
   Widget _buildLocationList() {
     if (_nearbyLocations.isEmpty) {
-      return Text('No nearby locations found.');
+      return Center(
+        child: Text('No nearby locations found.'),
+      );
     } else {
       return ListView.builder(
         itemCount: _nearbyLocations.length,
         itemBuilder: (context, index) {
           final location = _nearbyLocations[index];
-          return ListTile(
-            title: Text(location['name']),
-            subtitle: Text(
-                'Latitude: ${location['latitude']}, Longitude: ${location['longitude']}'),
-            onTap: () {
-              // Handle tapping on a location if needed
-            },
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[200],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: ListTile(
+                title: Text(location['name']),
+                subtitle: Text(
+                    'Latitude: ${location['latitude']}, Longitude: ${location['longitude']}'),
+                onTap: () {
+                  // Handle tapping on a location if needed
+                },
+              ),
+            ),
           );
         },
       );
@@ -111,46 +129,40 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
       appBar: AppBar(
         title: Text('Nearby Locations'),
       ),
-      body: _currentPosition != null
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Current Location: ${_currentPosition.latitude}, ${_currentPosition.longitude}',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 20,
-                      ),
-                      ElevatedButton(
-                        onPressed: () =>
-                            _filterLocations(100), // 100 meters radius
-                        child: Text('Within 100m'),
-                      ),
-                      SizedBox(
-                        width: 20,
-                      ),
-                      ElevatedButton(
-                        onPressed: () =>
-                            _filterLocations(1000), // 200 meters radius
-                        child: Text('Within 1km'),
-                      ),
-                    ],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _currentPosition != null
+              ? Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Current Location: ${_currentPosition.latitude}, ${_currentPosition.longitude}',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
+                )
+              : SizedBox(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _filterLocations(100), // 100 meters radius
+                  child: Text('Within 100m'),
                 ),
-                SizedBox(height: 20),
-                Expanded(
-                  child: _buildLocationList(),
+                ElevatedButton(
+                  onPressed: () => _filterLocations(
+                      1000), // 1000 meters radius, changed comment to match actual radius
+                  child: Text('Within 1km'),
                 ),
               ],
-            )
-          : Center(
-              child: CircularProgressIndicator(),
             ),
+          ),
+          Expanded(
+            child: _buildLocationList(),
+          ),
+        ],
+      ),
     );
   }
 }
