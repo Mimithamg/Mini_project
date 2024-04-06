@@ -113,8 +113,39 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           TextButton(
                             onPressed: () {
-                              //forgot password screen
-                            },
+                              showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Reset Password'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: emailController,
+                    decoration: InputDecoration(labelText: 'Email'),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    resetPassword(context);
+                  },
+                  child: Text('Reset'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+                            
                             child: Text(
                               'Forgot password ?',
                               style: TextStyle(color: Color(0xff567DF4)),
@@ -217,6 +248,30 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void resetPassword(BuildContext context) async {
+    String email = emailController.text.trim();
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Password reset email sent to $email'),
+        ),
+      );
+    } catch (e) {
+      print('Error sending password reset email: $e');
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to send password reset email. Please try again.'),
+        ),
+      );
+    }
+    // Close the dialog
+    Navigator.of(context).pop();
   }
 
   void login(String email, String password, BuildContext context) async {

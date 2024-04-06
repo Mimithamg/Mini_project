@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -43,7 +44,7 @@ class HomePage extends StatelessWidget {
                 ListTile(
                   title: Text('Logout'),
                   onTap: () {
-                    // Handle logout
+                    confirmLogout(context);
                   },
                 ),
               ],
@@ -57,7 +58,7 @@ class HomePage extends StatelessWidget {
                 child: IconButton(
                   icon: Icon(Icons.logout),
                   onPressed: () {
-                    // Handle logout
+                    confirmLogout(context);
                   },
                 ),
               ),
@@ -130,6 +131,50 @@ class HomePage extends StatelessWidget {
         OpenStreetMapTileLater,
       ],
     );
+  }
+
+  void confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Logout'),
+          content: Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                logout(context); // Logout the user
+              },
+              child: Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void logout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      // Redirect to the login page or any other desired page
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      // Handle error
+      print('Error logging out: $e');
+      // Optionally, display an error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error logging out. Please try again.'),
+        ),
+      );
+    }
   }
 
   Future<void> getDocuments() async {
