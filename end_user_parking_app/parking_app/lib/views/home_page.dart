@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:parking_app/views/near_by_location.dart';
 import 'package:parking_app/views/search_page.dart';
 import 'package:parking_app/views/search_bar.dart';
+import 'package:parking_app/views/spot_details.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -29,12 +30,12 @@ class HomePage extends StatelessWidget {
                 ListTile(
                   title: Text('Profile'),
                   onTap: () {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => MyWidget(),
-                    //   ),
-                    // );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ParkingDetailsScreen(),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
