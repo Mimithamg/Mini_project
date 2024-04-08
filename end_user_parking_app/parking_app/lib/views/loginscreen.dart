@@ -192,8 +192,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: double.infinity, // Make the SizedBox take full width
                     child: ElevatedButton(
                       onPressed: () {
-                        final email = emailController.text.trim();
-                        final password = passwordController.text.trim();
+                        final String email = emailController.text.trim();
+                        final String password = passwordController.text.trim();
 
                         if (email.isNotEmpty && password.isNotEmpty) {
                           login(email, password, context);

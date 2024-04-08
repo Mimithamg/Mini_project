@@ -1,7 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:security_app/repositary/authentication_repositary.dart';
+import 'package:security_app/lib/repositary/authentication_repositary.dart';
+import 'package:security_app/screens/security_homescreen.dart'; // Import your HomeScreen here
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -9,6 +14,10 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _passwordVisible = false;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,9 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                    height: MediaQuery.of(context).size.height *
-                        0.1), // 10% of screen height
+                SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                 Text(
                   'Welcome to',
                   style: TextStyle(
@@ -41,9 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontFamily: 'Redex Pro',
                   ),
                 ),
-                SizedBox(
-                    height: MediaQuery.of(context).size.height *
-                        0.10), // 5% of screen height
+                SizedBox(height: MediaQuery.of(context).size.height * 0.10),
                 Text(
                   'Please login to your account to continue',
                   style: TextStyle(
@@ -51,11 +56,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.grey,
                   ),
                 ),
-                SizedBox(
-                    height: MediaQuery.of(context).size.height *
-                        0.04), // 4% of screen height
+                SizedBox(height: MediaQuery.of(context).size.height * 0.04),
                 Container(
-                  width: double.infinity, // Make the container take full width
+                  width: double.infinity,
                   child: Column(
                     children: [
                       Container(
@@ -64,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: TextFormField(
-                          //controller: emailController,
+                          controller: _emailController,
                           decoration: InputDecoration(
                               hintText: 'Your email address',
                               prefixIcon: Icon(Icons.email_outlined),
@@ -72,16 +75,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           keyboardType: TextInputType.emailAddress,
                         ),
                       ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height *
-                              0.03), // 3% of screen height
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.03),
                       Container(
                         decoration: BoxDecoration(
                           color: Color(0xFFf4f6ff),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: TextFormField(
-                          //controller: passwordController,
+                          controller: _passwordController,
                           obscureText: !_passwordVisible,
                           decoration: InputDecoration(
                               hintText: 'Your password',
@@ -115,7 +116,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         TextField(
-                                          //controller: emailController,
                                           decoration: InputDecoration(
                                               labelText: 'Email'),
                                         ),
@@ -124,14 +124,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                     actions: <Widget>[
                                       TextButton(
                                         onPressed: () {
-                                          Navigator.of(context)
-                                              .pop(); // Close the dialog
+                                          Navigator.of(context).pop();
                                         },
                                         child: Text('Cancel'),
                                       ),
                                       TextButton(
                                         onPressed: () {
-                                          //resetPassword(context);
+                                          // Reset password logic
                                         },
                                         child: Text('Reset'),
                                       ),
@@ -150,33 +149,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                SizedBox(
-                    height: MediaQuery.of(context).size.height *
-                        0.05), // 25% of screen height
-
-                SizedBox(
-                    height: MediaQuery.of(context).size.height *
-                        0.02), // 5% of screen height
+                SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                 Container(
-                  width: double.infinity, // Make the container take full width
+                  width: double.infinity,
                   child: SizedBox(
-                    width: double.infinity, // Make the SizedBox take full width
+                    width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        //final email = emailController.text.trim();
-                        //final password = passwordController.text.trim();
+                      onPressed: ()  {
+                        final String email = _emailController.text.trim();
+                        final String password = _passwordController.text.trim();
 
-                        // if (email.isNotEmpty && password.isNotEmpty) {
-                        //   login(email, password, context);
-                        // } else {
-                        //   ScaffoldMessenger.of(context).showSnackBar(
-                        //     SnackBar(
-                        //       content: Text('Please enter email and password'),
-                        //     ),
-                        //   );
-                        // }
-
-                        // Handle login button press
+                        if (email.isNotEmpty && password.isNotEmpty) {
+                          login(email, password, context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please enter email and password'),
+                            ),
+                          );
+                        }
                       },
                       child: Text(
                         'LOGIN',
@@ -191,14 +182,32 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                SizedBox(
-                    height: MediaQuery.of(context).size.height *
-                        0.05), // 5% of screen height
+                SizedBox(height: MediaQuery.of(context).size.height * 0.05),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+  void login(String email, String password, BuildContext context) async {
+    
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Login successful, navigate to home page
+      Navigator.pushNamed(context, '/home');
+    } catch (e) {
+      // Login failed, handle error
+      print('Error logging in user: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login failed. Please try again.'),
+        ),
+      );
+    }
   }
 }
