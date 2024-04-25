@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:parking_app/controllers/signup_controller.dart';
 
 class AccountCreationScreen extends StatefulWidget {
-  const AccountCreationScreen({super.key});
+  const AccountCreationScreen({Key? key});
 
   @override
   State<AccountCreationScreen> createState() => _AccountCreationScreenState();
@@ -15,9 +16,11 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
   String? _firstNameError;
   String? _lastNameError;
   String? _mobileNumberError;
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(SignUpController());
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -96,7 +99,6 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
                             ),
                           ),
                         ),
-// Display error message if there's an error
                         if (_firstNameError != null)
                           Align(
                             alignment: Alignment.topLeft,
@@ -108,7 +110,6 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
                               ),
                             ),
                           ),
-
                         SizedBox(height: 20.0),
                         Container(
                           decoration: BoxDecoration(
@@ -231,14 +232,29 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
+                            UserCredential?
+                                userCredential; // Define userCredential variable
                             try {
-                              await FirebaseAuth.instance
+                              // Create user with email and password
+                              final userCredential = await FirebaseAuth.instance
                                   .createUserWithEmailAndPassword(
                                 email: controller.email.text.trim(),
                                 password: controller.password.text.trim(),
                               );
-                              // Registration successful, navigate to verification page
-                              Navigator.pushNamed(context, '/home');
+
+                              // Access user from userCredential
+                              final user = userCredential.user;
+
+                              // Check if user is not null
+                              if (user != null) {
+                                // Create user document in Firestore
+                                await createUserDocument(user, controller);
+
+                                // Navigate to home page or any other destination
+                                Navigator.pushNamed(context, '/home');
+                              } else {
+                                throw Exception("User is null");
+                              }
                             } catch (e) {
                               // Registration failed, handle error
                               print('Error registering user: $e');
@@ -299,5 +315,28 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
     // Define your pattern for a valid phone number
     RegExp regex = RegExp(r'^[0-9]{10}$');
     return regex.hasMatch(value);
+  }
+
+  Future<void> createUserDocument(
+      User user, SignUpController controller) async {
+    try {
+      // Reference to the Firestore collection
+      final usersCollection = FirebaseFirestore.instance.collection('users');
+
+      // Create a new document with the user's UID as the document ID
+      await usersCollection.doc(user.uid).set({
+        'email': user.email,
+        'firstName': controller.firstName.text.trim(),
+        'lastName': controller.lastName.text.trim(),
+        'mobileNumber': controller.phoneNo.text.trim(),
+        'userType': 'end_user', // Defaulting to end_user, adjust as needed
+        'assignedParkingSpaceId':
+            null, // Initially set to null or a default value
+      });
+    } catch (e) {
+      // Handle any errors that occur during document creation
+      print('Error creating user document: $e');
+      throw e; // Rethrow the error to be handled elsewhere if needed
+    }
   }
 }

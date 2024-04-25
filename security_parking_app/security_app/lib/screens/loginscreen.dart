@@ -1,9 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:security_app/repositary/authentication_repositary.dart';
-import 'package:security_app/lib/repositary/authentication_repositary.dart';
-import 'package:security_app/screens/security_homescreen.dart'; // Import your HomeScreen here
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:security_app/screens/parking_space_details.dart'; // Import your ParkingSpaceDetailsScreen here
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -75,7 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           keyboardType: TextInputType.emailAddress,
                         ),
                       ),
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.03),
                       Container(
                         decoration: BoxDecoration(
                           color: Color(0xFFf4f6ff),
@@ -155,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: ()  {
+                      onPressed: () {
                         final String email = _emailController.text.trim();
                         final String password = _passwordController.text.trim();
 
@@ -190,16 +189,74 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
   void login(String email, String password, BuildContext context) async {
-    
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Login successful, navigate to home page
-      Navigator.pushNamed(context, '/home');
+      User? user = userCredential.user;
+
+      if (user != null) {
+        print('User Email: ${user.email}'); // Printing user email
+        // Query Firestore collection 'users' using the user's email
+        QuerySnapshot<
+            Map<String,
+                dynamic>> querySnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('email',
+                isEqualTo: user
+                    .email) // Assuming 'email' is the field storing the email in your 'users' collection
+            .get();
+
+        if (querySnapshot.size > 0) {
+          // If documents are found for the user's email
+          DocumentSnapshot<Map<String, dynamic>> userDoc =
+              querySnapshot.docs.first;
+          Map<String, dynamic> userData = userDoc.data()!;
+
+          // Retrieving assignedParkingSpaceId from userData
+          dynamic assignedParkingSpaceId = userData['assignedParkingSpaceId'];
+
+          if (assignedParkingSpaceId != null) {
+            // Assigned parking space ID is not null
+            print('Assigned Parking Space ID: $assignedParkingSpaceId');
+
+            // Query Firestore collection 'PARKING SPACES' to check if assignedParkingSpaceId exists
+            QuerySnapshot<Map<String, dynamic>> parkingSpaceSnapshot =
+                await FirebaseFirestore.instance
+                    .collection('PARKING SPACES')
+                    .where('space_id', isEqualTo: assignedParkingSpaceId)
+                    .get();
+
+            if (parkingSpaceSnapshot.size > 0) {
+              // If documents are found for the assigned parking space ID
+              print('Assigned parking space ID is valid.');
+              // Further processing...
+              // Navigate to ParkingSpaceDetailsScreen and pass the parking space ID
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ParkingSpaceDetailsScreen(
+                      spaceId: assignedParkingSpaceId.toString()),
+                ),
+              );
+            } else {
+              // No documents found for the assigned parking space ID
+              print('Assigned parking space ID is invalid.');
+            }
+          } else {
+            // No assigned parking space ID found
+            print('No assigned parking space ID for this user.');
+          }
+        } else {
+          // No documents found for the user's email
+          print('User document not found in Firestore');
+        }
+      }
     } catch (e) {
       // Login failed, handle error
       print('Error logging in user: $e');
