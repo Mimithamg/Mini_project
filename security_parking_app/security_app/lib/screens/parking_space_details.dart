@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:security_app/screens/home.dart';
+import 'package:security_app/screens/security_homescreen.dart';
 
 class ParkingSpaceDetailsScreen extends StatelessWidget {
   final String spaceId;
@@ -52,6 +54,18 @@ class ParkingSpaceDetailsScreen extends StatelessWidget {
                   Text('Space Name: ${parkingSpaceData['space_name']}'),
                   Text('Working Time: ${parkingSpaceData['working_time']}'),
                   // Add more details as needed
+                  FloatingActionButton(
+                    // Add FloatingActionButton
+                    onPressed: () {
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //       builder: (context) =>
+                      //           SecurityhomeWidget()), // Navigate to NextPage
+                      // );
+                    },
+                    child: Icon(Icons.arrow_forward),
+                  ),
                 ],
               ),
             );
