@@ -242,8 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => SecurityhomeWidget(
-                      //spaceId: assignedParkingSpaceId.toString()
-                      ),
+                      spaceId: assignedParkingSpaceId.toString()),
                 ),
               );
             } else {
