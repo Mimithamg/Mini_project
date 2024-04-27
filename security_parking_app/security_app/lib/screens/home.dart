@@ -112,7 +112,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                           confirmedBoxes: confirmedBoxes,
                         ),
                       ),
-                    ).then((value) {
+                    ).then((value) async {
                       if (value != null) {
                         setState(() {
                           confirmedBoxes[i] = value['confirmed'];
@@ -121,6 +121,34 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                             boxTimestamps[i] = value['timestamp'];
                           }
                         });
+
+                        // Decrement the availability of four-wheelers
+                        int newavailfour =
+                            parkingSpaceData['availability_four'] - 1;
+                        parkingSpaceData['availability_four'] = newavailfour;
+                        print(newavailfour);
+                        // Write the updated capacity to Firebase
+                        try {
+                          QuerySnapshot querySnapshot = await FirebaseFirestore
+                              .instance
+                              .collection('PARKING SPACES')
+                              .where('space_id',
+                                  isEqualTo: int.parse(widget.spaceId))
+                              .get();
+
+                          if (querySnapshot.docs.isNotEmpty) {
+                            DocumentReference docRef =
+                                querySnapshot.docs.first.reference;
+                            await docRef.update({
+                              'availability_four': newavailfour,
+                            });
+                            print('Updated availability_four to $newavailfour');
+                          } else {
+                            print('Document does not exist');
+                          }
+                        } catch (e) {
+                          print('Error updating Firestore: $e');
+                        }
                       }
                     });
                   },
@@ -208,6 +236,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
             //   print(
             //       '  Timestamp: ${DateFormat.yMMMd().add_jm().format(boxTimestamps[i]!.toDate())}');
             // }
+
             List<Widget> boxestwo = [];
 
             for (int i = 0; i <= parkingSpaceData['capacity_two']; i++) {
@@ -223,7 +252,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                           confirmedBoxes: confirmedBoxesTwo,
                         ),
                       ),
-                    ).then((value) {
+                    ).then((value) async {
                       if (value != null) {
                         setState(() {
                           confirmedBoxesTwo[i] = value['confirmed'];
@@ -232,6 +261,32 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                             boxTimestampsTwo[i] = value['timestamp'];
                           }
                         });
+                        int newavailtwo =
+                            parkingSpaceData['availability_two'] - 1;
+                        parkingSpaceData['availability_two'] = newavailtwo;
+                        print(newavailtwo);
+                        // Write the updated capacity to Firebase
+                        try {
+                          QuerySnapshot querySnapshot = await FirebaseFirestore
+                              .instance
+                              .collection('PARKING SPACES')
+                              .where('space_id',
+                                  isEqualTo: int.parse(widget.spaceId))
+                              .get();
+
+                          if (querySnapshot.docs.isNotEmpty) {
+                            DocumentReference docRef =
+                                querySnapshot.docs.first.reference;
+                            await docRef.update({
+                              'availability_two': newavailtwo,
+                            });
+                            print('Updated availability_two to $newavailtwo');
+                          } else {
+                            print('Document does not exist');
+                          }
+                        } catch (e) {
+                          print('Error updating Firestore: $e');
+                        }
                       }
                     });
                   },
@@ -448,11 +503,19 @@ class _BoxDetailsPageState extends State<BoxDetailsPage> {
               ),
               SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     setState(() {
                       widget.confirmedBoxes[widget.boxIndex] = true;
                     });
+                    print(widget.boxIndex);
+                    final vehicleData = {
+                      'vehicle_number': _contentController.text,
+                      'entry_time': Timestamp.now(),
+                    };
+                    await FirebaseFirestore.instance
+                        .collection('VEHICLES')
+                        .add(vehicleData);
                     Navigator.pop(context, {
                       'confirmed': true,
                       'content': _contentController.text,
