@@ -78,88 +78,172 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
           } else {
             var parkingSpaceData = snapshot.data!.docs.first.data();
             // Print parking space details in terminal
-            print('Parking Space ID: ${widget.spaceId}');
-            print('Address: ${parkingSpaceData['address']}');
-            print(
-                'Availability (Four-Wheelers): ${parkingSpaceData['availability_four']}');
-            print(
-                'Availability (Two-Wheelers): ${parkingSpaceData['availability_two']}');
-            print(
-                'Capacity (Four-Wheelers): ${parkingSpaceData['capacity_four']}');
-            print(
-                'Capacity (Two-Wheelers): ${parkingSpaceData['capacity_two']}');
-            print(
-                'Parking Fee per Hour (Four-Wheelers): ${parkingSpaceData['fee_ph_four']}');
-            print(
-                'Parking Fee per Hour (Two-Wheelers): ${parkingSpaceData['fee_ph_two']}');
-            print('Location: ${parkingSpaceData['location']}');
-            print('Rating: ${parkingSpaceData['rating']}');
-            print('Space Name: ${parkingSpaceData['space_name']}');
-            print('Working Time: ${parkingSpaceData['working_time']}');
-            // Add more details as needed
+            // print('Parking Space ID: ${widget.spaceId}');
+            // print('Address: ${parkingSpaceData['address']}');
+            // print(
+            //     'Availability (Four-Wheelers): ${parkingSpaceData['availability_four']}');
+            // print(
+            //     'Availability (Two-Wheelers): ${parkingSpaceData['availability_two']}');
+            // print(
+            //     'Capacity (Four-Wheelers): ${parkingSpaceData['capacity_four']}');
+            // print(
+            //     'Capacity (Two-Wheelers): ${parkingSpaceData['capacity_two']}');
+            // print(
+            //     'Parking Fee per Hour (Four-Wheelers): ${parkingSpaceData['fee_ph_four']}');
+            // print(
+            //     'Parking Fee per Hour (Two-Wheelers): ${parkingSpaceData['fee_ph_two']}');
+            // print('Location: ${parkingSpaceData['location']}');
+            // print('Rating: ${parkingSpaceData['rating']}');
+            // print('Space Name: ${parkingSpaceData['space_name']}');
+            // print('Working Time: ${parkingSpaceData['working_time']}');
+            // // Add more details as needed
             List<Widget> boxesfour = [];
 
             for (int i = 0; i <= parkingSpaceData['capacity_four']; i++) {
               boxesfour.add(
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BoxDetailsPage(
-                          boxIndex: i,
-                          capacity: parkingSpaceData['capacity_four'],
-                          confirmedBoxes: confirmedBoxes,
+                    if (confirmedBoxes.containsKey(i) && confirmedBoxes[i]!) {
+                      // Show dialog to confirm exit
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Confirm Exit'),
+                          content:
+                              Text('Are you sure you want to exit this box?'),
+                          actions: [
+                            TextButton(
+                              child: Text('Cancel'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            TextButton(
+                              child: Text('Confirm Exit'),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ConfirmationPage(
+                                      vehicleNumber: boxContents[i]!,
+                                      entryTime: boxTimestamps[i]!,
+                                      exitTime: Timestamp.now(),
+                                      parkingSpaceData: parkingSpaceData,
+                                      spaceId: widget.spaceId,
+                                    ),
+                                  ),
+                                ).then((value) async {
+                                  if (value != null && value) {
+                                    // Reset the box status and update Firestore
+                                    setState(() {
+                                      confirmedBoxes[i] = false;
+                                      boxContents[i] = '';
+                                      //boxTimestamps[i] = null;
+                                      //boxTimestamps[i] = null;
+                                    });
+                                    // Update the availability of four-wheelers
+                                    int newavailfour =
+                                        parkingSpaceData['availability_four']++;
+                                    parkingSpaceData['availability_four'] =
+                                        newavailfour;
+                                    print("increased");
+                                    // Write the updated capacity to Firebase
+                                    try {
+                                      QuerySnapshot querySnapshot =
+                                          await FirebaseFirestore.instance
+                                              .collection('PARKING SPACES')
+                                              .where('space_id',
+                                                  isEqualTo:
+                                                      int.parse(widget.spaceId))
+                                              .get();
+
+                                      if (querySnapshot.docs.isNotEmpty) {
+                                        DocumentReference docRef =
+                                            querySnapshot.docs.first.reference;
+                                        await docRef.update({
+                                          'availability_four': newavailfour,
+                                        });
+                                        print(
+                                            'Updated availability_four to $newavailfour');
+                                      } else {
+                                        print('Document does not exist');
+                                      }
+                                    } catch (e) {
+                                      print('Error updating Firestore: $e');
+                                    }
+                                  }
+                                });
+                              },
+                            ),
+                          ],
                         ),
-                      ),
-                    ).then((value) async {
-                      if (value != null) {
-                        setState(() {
-                          confirmedBoxes[i] = value['confirmed'];
-                          boxContents[i] = value['content'];
-                          if (value['timestamp'] != null) {
-                            boxTimestamps[i] = value['timestamp'];
-                          }
-                        });
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BoxDetailsPage(
+                            boxIndex: i,
+                            capacity: parkingSpaceData['capacity_four'],
+                            confirmedBoxes: confirmedBoxes,
+                            updateBoxTimestamp: (index, timestamp) {
+                              setState(() {
+                                boxTimestamps[index] = timestamp;
+                              });
+                            },
+                          ),
+                        ),
+                      ).then((value) async {
+                        if (value != null) {
+                          setState(() {
+                            confirmedBoxes[i] = value['confirmed'];
+                            boxContents[i] = value['content'];
+                          });
 
-                        // Decrement the availability of four-wheelers
-                        int newavailfour =
-                            parkingSpaceData['availability_four'] - 1;
-                        parkingSpaceData['availability_four'] = newavailfour;
-                        print(newavailfour);
-                        // Write the updated capacity to Firebase
-                        try {
-                          QuerySnapshot querySnapshot = await FirebaseFirestore
-                              .instance
-                              .collection('PARKING SPACES')
-                              .where('space_id',
-                                  isEqualTo: int.parse(widget.spaceId))
-                              .get();
+                          // Decrement the availability of four-wheelers
+                          int newavailfour =
+                              parkingSpaceData['availability_four'] - 1;
+                          parkingSpaceData['availability_four'] = newavailfour;
+                          // Write the updated capacity to Firebase
+                          try {
+                            QuerySnapshot querySnapshot =
+                                await FirebaseFirestore.instance
+                                    .collection('PARKING SPACES')
+                                    .where('space_id',
+                                        isEqualTo: int.parse(widget.spaceId))
+                                    .get();
 
-                          if (querySnapshot.docs.isNotEmpty) {
-                            DocumentReference docRef =
-                                querySnapshot.docs.first.reference;
-                            await docRef.update({
-                              'availability_four': newavailfour,
-                            });
-                            print('Updated availability_four to $newavailfour');
-                          } else {
-                            print('Document does not exist');
+                            if (querySnapshot.docs.isNotEmpty) {
+                              DocumentReference docRef =
+                                  querySnapshot.docs.first.reference;
+                              await docRef.update({
+                                'availability_four': newavailfour,
+                              });
+                              print(
+                                  'Updated availability_four to $newavailfour');
+                            } else {
+                              print('Document does not exist');
+                            }
+                          } catch (e) {
+                            print('Error updating Firestore: $e');
                           }
-                        } catch (e) {
-                          print('Error updating Firestore: $e');
                         }
-                      }
-                    });
+                      });
+                    }
                   },
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: confirmedBoxes.containsKey(i)
-                            ? Colors.grey
-                            : Colors.white,
+                        color: confirmedBoxes.containsKey(i) &&
+                                confirmedBoxes[i]!
+                            ? Colors.grey // default color when confirmed
+                            : confirmedBoxes.containsKey(i) &&
+                                    !confirmedBoxes[i]!
+                                ? Colors
+                                    .white // change to white when exit confirmed
+                                : Colors
+                                    .white, // default color when not confirmed
+
                         boxShadow: [
                           BoxShadow(
                             blurRadius: 3,
@@ -197,21 +281,23 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                               ? Text(boxContents[i]!)
                                               : Text(''),
                                           SizedBox(height: 4),
-                                          Text(
-                                            boxTimestamps.containsKey(i) &&
-                                                    boxTimestamps[i] != null
-                                                ? 'Entry time:  ${DateFormat.jm().format(boxTimestamps[i]!.toDate())}'
-                                                : '',
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                          Text(
-                                            boxTimestamps.containsKey(i) &&
-                                                    boxTimestamps[i] != null
-                                                ? DateFormat.yMMMd().format(
-                                                    boxTimestamps[i]!.toDate())
-                                                : '',
-                                            style: TextStyle(fontSize: 12),
-                                          ),
+                                          confirmedBoxes.containsKey(i) &&
+                                                  confirmedBoxes[i]! &&
+                                                  boxTimestamps.containsKey(i)
+                                              ? Text(
+                                                  'Entry time:  ${DateFormat.jm().format(boxTimestamps[i]!.toDate())}')
+                                              : Text(''),
+                                          SizedBox(height: 4),
+                                          // boxTimestamps.containsKey(i) &&
+                                          //         boxTimestamps[i] != null
+                                          confirmedBoxes.containsKey(i) &&
+                                                  confirmedBoxes[i]! &&
+                                                  boxTimestamps.containsKey(i)
+                                              ? Text(DateFormat.yMMMd().format(
+                                                  boxTimestamps[i]!.toDate()))
+                                              : Text(''),
+                                          // style: TextStyle(fontSize: 12),
+                                          // ),
                                         ],
                                       ),
                                     ),
@@ -228,15 +314,6 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
               );
             }
 
-// Print details of each box in the boxesfour list
-            // for (int i = 0; i <= parkingSpaceData['capacity_four']; i++) {
-            //   print('Box ${i + 1} Details:');
-            //   print('  Confirmed: ${confirmedBoxes[i]}');
-            //   print('  Content: ${boxContents[i]}');
-            //   print(
-            //       '  Timestamp: ${DateFormat.yMMMd().add_jm().format(boxTimestamps[i]!.toDate())}');
-            // }
-
             List<Widget> boxestwo = [];
 
             for (int i = 0; i <= parkingSpaceData['capacity_two']; i++) {
@@ -250,6 +327,11 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                           boxIndex: i,
                           capacity: parkingSpaceData['capacity_two'],
                           confirmedBoxes: confirmedBoxesTwo,
+                          updateBoxTimestamp: (index, timestamp) {
+                            setState(() {
+                              boxTimestampsTwo[index] = timestamp;
+                            });
+                          },
                         ),
                       ),
                     ).then((value) async {
@@ -257,15 +339,12 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                         setState(() {
                           confirmedBoxesTwo[i] = value['confirmed'];
                           boxContentsTwo[i] = value['content'];
-                          if (value['timestamp'] != null) {
-                            boxTimestampsTwo[i] = value['timestamp'];
-                          }
                         });
+
                         int newavailtwo =
                             parkingSpaceData['availability_two'] - 1;
                         parkingSpaceData['availability_two'] = newavailtwo;
-                        print(newavailtwo);
-                        // Write the updated capacity to Firebase
+
                         try {
                           QuerySnapshot querySnapshot = await FirebaseFirestore
                               .instance
@@ -335,13 +414,6 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                               ? Text(boxContentsTwo[i]!)
                                               : Text(''),
                                           SizedBox(height: 4),
-                                          Text(
-                                            boxTimestampsTwo.containsKey(i) &&
-                                                    boxTimestampsTwo[i] != null
-                                                ? 'Entry time:  ${DateFormat.jm().format(boxTimestampsTwo[i]!.toDate())}'
-                                                : '',
-                                            style: TextStyle(fontSize: 12),
-                                          ),
                                           Text(
                                             boxTimestampsTwo.containsKey(i) &&
                                                     boxTimestampsTwo[i] != null
@@ -446,29 +518,17 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
   }
 }
 
-class YourNextPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Next Page'),
-      ),
-      body: Center(
-        child: Text('This is the next page!'),
-      ),
-    );
-  }
-}
-
 class BoxDetailsPage extends StatefulWidget {
   final int boxIndex;
   final int capacity;
   final Map<int, bool> confirmedBoxes;
+  final Function(int, Timestamp) updateBoxTimestamp;
 
   BoxDetailsPage({
     required this.boxIndex,
     required this.capacity,
     required this.confirmedBoxes,
+    required this.updateBoxTimestamp,
   });
 
   @override
@@ -508,7 +568,6 @@ class _BoxDetailsPageState extends State<BoxDetailsPage> {
                     setState(() {
                       widget.confirmedBoxes[widget.boxIndex] = true;
                     });
-                    print(widget.boxIndex);
                     final vehicleData = {
                       'vehicle_number': _contentController.text,
                       'entry_time': Timestamp.now(),
@@ -516,10 +575,10 @@ class _BoxDetailsPageState extends State<BoxDetailsPage> {
                     await FirebaseFirestore.instance
                         .collection('VEHICLES')
                         .add(vehicleData);
+                    widget.updateBoxTimestamp(widget.boxIndex, Timestamp.now());
                     Navigator.pop(context, {
                       'confirmed': true,
                       'content': _contentController.text,
-                      'timestamp': Timestamp.now(),
                     });
                   }
                 },
@@ -527,6 +586,117 @@ class _BoxDetailsPageState extends State<BoxDetailsPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class ConfirmationPage extends StatefulWidget {
+  final String vehicleNumber;
+  final Timestamp entryTime;
+  final Timestamp exitTime;
+
+  var parkingSpaceData;
+
+  var spaceId;
+
+  ConfirmationPage({
+    required this.vehicleNumber,
+    required this.entryTime,
+    required this.exitTime,
+    required this.parkingSpaceData,
+    required this.spaceId,
+  });
+
+  @override
+  State<ConfirmationPage> createState() => _ConfirmationPageState();
+}
+
+class _ConfirmationPageState extends State<ConfirmationPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Confirm Exit'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Vehicle Number:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              widget.vehicleNumber,
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Entry Time:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              DateFormat.yMMMd().add_jm().format(widget.entryTime.toDate()),
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Exit Time:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              DateFormat.yMMMd().add_jm().format(widget.exitTime.toDate()),
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 32),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  // onPressed:
+                  // () async {
+                  //   int newavailfour =
+                  //       widget.parkingSpaceData['availability_four'] + 1;
+                  //   widget.parkingSpaceData['availability_four'] = newavailfour;
+
+                  //   print("increased!!!!!!");
+
+                  //   try {
+                  //     QuerySnapshot querySnapshot = await FirebaseFirestore
+                  //         .instance
+                  //         .collection('PARKING SPACES')
+                  //         .where('space_id',
+                  //             isEqualTo: int.parse(widget.spaceId))
+                  //         .get();
+
+                  //     if (querySnapshot.docs.isNotEmpty) {
+                  //       DocumentReference docRef =
+                  //           querySnapshot.docs.first.reference;
+                  //       await docRef.update({
+                  //         'availability_four': newavailfour,
+                  //       });
+                  //       print(
+                  //           'Updated availability_four  iiii  to $newavailfour');
+                  //     } else {
+                  //       print('Document does not exist');
+                  //     }
+                  //   } catch (e) {
+                  //     print('Error updating Firestore: $e');
+                  //   }
+
+                  //   Navigator.pop(context, true);
+                  //   Navigator.pop(context, true);
+                  // };
+
+                  Navigator.pop(context, true);
+                  Navigator.pop(context, true);
+                },
+                child: Text('Confirm'),
+              ),
+            ),
+          ],
         ),
       ),
     );
