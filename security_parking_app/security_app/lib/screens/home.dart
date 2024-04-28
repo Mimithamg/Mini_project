@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:security_app/screens/billingpage.dart';
 
 class SecurityhomeWidget extends StatefulWidget {
   final String spaceId;
@@ -114,7 +115,11 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                           actions: [
                             TextButton(
                               child: Text('Cancel'),
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => Navigator.pop(
+                                context,
+                                // MaterialPageRoute(
+                                //     builder: (context) => BillingPage()),
+                              ),
                             ),
                             TextButton(
                               child: Text('Confirm Exit'),
@@ -122,7 +127,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ConfirmationPage(
+                                    builder: (context) => BillingPage(
                                       vehicleNumber: boxContents[i]!,
                                       entryTime: boxTimestamps[i]!,
                                       exitTime: Timestamp.now(),
