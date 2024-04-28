@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:security_app/screens/home.dart';
 import 'package:security_app/screens/parking_space_details.dart'; // Import your ParkingSpaceDetailsScreen here
 
 class LoginScreen extends StatefulWidget {
@@ -240,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ParkingSpaceDetailsScreen(
+                  builder: (context) => SecurityhomeWidget(
                       spaceId: assignedParkingSpaceId.toString()),
                 ),
               );
