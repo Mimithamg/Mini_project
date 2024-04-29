@@ -34,6 +34,11 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
       length: 2,
       initialIndex: 0,
     );
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
+    double horizontalPadding = width * 0.02; // 2% of the screen width
+    double verticalPadding = height * 0.01; // 1% of the screen height
 
     return Scaffold(
       //backgroundColor: Color(0xFF4B39EF),
@@ -182,7 +187,8 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                     }
                   },
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: EdgeInsets.fromLTRB(horizontalPadding,
+                        verticalPadding, horizontalPadding, 0),
                     child: Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
@@ -209,7 +215,11 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(8, 8, 12, 8),
+                        padding: EdgeInsets.fromLTRB(
+                            horizontalPadding,
+                            verticalPadding,
+                            horizontalPadding,
+                            verticalPadding),
                         child: Row(
                           mainAxisSize: MainAxisSize.max,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -220,8 +230,8 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: 375,
-                                    height: 70,
+                                    width: width * 0.95,
+                                    height: height * 0.1,
                                     color: Colors
                                         .white, // Replace with your desired color
                                     child: Center(
@@ -239,7 +249,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                               ? Text(
                                                   'Entry time:  ${DateFormat.jm().format(boxTimestamps[i]!.toDate())}')
                                               : Text(''),
-                                          SizedBox(height: 4),
+                                          SizedBox(height: height * 0.01),
                                           // boxTimestamps.containsKey(i) &&
                                           //         boxTimestamps[i] != null
                                           confirmedBoxes.containsKey(i) &&
@@ -322,7 +332,8 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                     });
                   },
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: EdgeInsets.fromLTRB(horizontalPadding,
+                        verticalPadding, horizontalPadding, 0),
                     child: Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
@@ -342,7 +353,11 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(8, 8, 12, 8),
+                        padding: EdgeInsets.fromLTRB(
+                            horizontalPadding,
+                            verticalPadding,
+                            horizontalPadding,
+                            verticalPadding),
                         child: Row(
                           mainAxisSize: MainAxisSize.max,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -353,8 +368,8 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: 375,
-                                    height: 70,
+                                    width: width * 0.95,
+                                    height: height * 0.1,
                                     color: Colors
                                         .white, // Replace with your desired color
                                     child: Center(

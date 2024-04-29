@@ -81,7 +81,7 @@ class _BillingPageState extends State<BillingPage> {
                   child: Container(
                     width: double.infinity,
                     constraints: BoxConstraints(
-                      maxWidth: 1170,
+                      maxWidth: 1155,
                     ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),

@@ -1,16 +1,129 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:flutter/services.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart'; // Import geolocator package
 import 'package:parking_app/views/near_by_location.dart';
 import 'package:parking_app/views/search_page.dart';
-import 'package:parking_app/views/search_bar.dart';
-import 'package:parking_app/views/spot_details.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late GoogleMapController mapController;
+  late LatLng _initialPosition;
+
+  final String _mapStyleString = '''
+[
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#9c9c9c"
+
+      }
+    ]
+  },
+
+]
+''';
+
+  void _onMarkerTapped(ParkingArea area) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ParkingDetailsScreen(
+          area: area,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _getUserLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high); // Fetch the current position
+    setState(() {
+      _initialPosition = LatLng(position.latitude, position.longitude);
+    });
+  }
+
+  List<Marker> _getMarkers() {
+    return [
+      Marker(
+        markerId: MarkerId('thrissur1'),
+        position: LatLng(10.552945, 76.222011),
+        infoWindow: InfoWindow(title: 'gect cse parking'),
+        onTap: () {
+          _onMarkerTapped(
+            ParkingArea(
+              name: 'gect cse parking',
+              address: 'Address of gect cse parking',
+              workingTime: '9 am to 7 pm',
+              availabilityFourWheelers: 10,
+              availabilityTwoWheelers: 15,
+              feePerHourFourWheelers: 20,
+              feePerHourTwoWheelers: 15,
+              rating: 4,
+            ),
+          );
+        },
+      ),
+      Marker(
+        markerId: MarkerId('thrissur2'),
+        position: LatLng(10.57666, 76.20752),
+        infoWindow: InfoWindow(title: 'mimis parking'),
+        onTap: () {
+          _onMarkerTapped(
+            ParkingArea(
+              name: 'mimis parking',
+              address: 'Address of mimis parking',
+              workingTime: '8 am to 10 pm',
+              availabilityFourWheelers: 5,
+              availabilityTwoWheelers: 20,
+              feePerHourFourWheelers: 25,
+              feePerHourTwoWheelers: 10,
+              rating: 3.5,
+            ),
+          );
+        },
+      ),
+      Marker(
+        markerId: MarkerId('thrissur3'),
+        position: LatLng(10.6074751, 76.148504),
+        infoWindow: InfoWindow(title: 'urmis parking'),
+        onTap: () {
+          _onMarkerTapped(
+            ParkingArea(
+              name: 'urmis parking',
+              address: 'Address of urmis parking',
+              workingTime: '7 am to 11 pm',
+              availabilityFourWheelers: 8,
+              availabilityTwoWheelers: 18,
+              feePerHourFourWheelers: 3,
+             rating: 3.5, feePerHourTwoWheelers: 20,
+            ),
+          );
+        },
+      )
+    ];
+  }
+
+@override
+void initState() {
+  super.initState();
+   _getUserLocation();
+   // Fetch user's current location when the widget initializes
+  setState(() {
+    _initialPosition = LatLng(10.525423, 76.213470); // Thrissur's coordinates
+  });
+}
+
   @override
   Widget build(BuildContext context) {
+   
     return Scaffold(
       appBar: AppBar(
         title: Text('PARK.IN'),
@@ -67,70 +180,59 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: Container(
-              child: content(),
-              // Add your Google Map widget here
-              color: Colors.grey, // Placeholder color
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: _initialPosition == null
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => NearbyLocationsPage()),
-                    );
-                    // Handle Nearby Spaces option
-                    // Navigate to nearby spaces screen or perform related actions
-                  },
-                  child: const Text('Nearby Spaces'),
+                Expanded(
+                  child: GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: _initialPosition,
+                      zoom: 15,
+                    ),
+                    onMapCreated: (GoogleMapController controller) {
+                      mapController = controller;
+                      controller.setMapStyle(_mapStyleString);
+                      
+                    },
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: true,
+                     markers: Set<Marker>.of(_getMarkers()),
+                      style: JsonEncoder().convert(_mapStyleString),
+                  ),
                 ),
-                //ElevatedButton(
-                // onPressed: () {
-                //getDocuments();
-                // Handle Search option
-                // Navigate to search screen or perform related actions
-                //},
-
-                //child: Text('Search'),
-                //),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SearchPage()),
-                    );
-                  },
-                  child: Text('Search'),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => NearbyLocationsPage()),
+                          );
+                          // Handle Nearby Spaces option
+                          // Navigate to nearby spaces screen or perform related actions
+                        },
+                        child: const Text('Nearby Spaces'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => SearchPage()),
+                          );
+                        },
+                        child: Text('Search'),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget content() {
-    return FlutterMap(
-      options: MapOptions(
-        initialCenter: LatLng(10.5276, 76.2144),
-        initialZoom: 15,
-        interactionOptions:
-            const InteractionOptions(flags: ~InteractiveFlag.doubleTapZoom),
-      ),
-      children: [
-        OpenStreetMapTileLater,
-      ],
     );
   }
 
@@ -163,13 +265,9 @@ class HomePage extends StatelessWidget {
 
   void logout(BuildContext context) async {
     try {
-      await FirebaseAuth.instance.signOut();
-      // Redirect to the login page or any other desired page
-      Navigator.pushReplacementNamed(context, '/login');
+      // Add your logout functionality here
     } catch (e) {
-      // Handle error
       print('Error logging out: $e');
-      // Optionally, display an error message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error logging out. Please try again.'),
@@ -177,24 +275,4 @@ class HomePage extends StatelessWidget {
       );
     }
   }
-
-  Future<void> getDocuments() async {
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection(
-              'PARKING SPACES') // Replace 'your_collection_name' with your collection name
-          .get();
-      // Iterate through the documents
-      querySnapshot.docs.forEach((doc) {
-        print(doc.data()); // Access document data
-      });
-    } catch (e) {
-      print("Error: $e");
-    }
-  }
 }
-
-TileLayer get OpenStreetMapTileLater => TileLayer(
-      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      userAgentPackageName: 'dev.fleaflet,flutter_map.example',
-    );
