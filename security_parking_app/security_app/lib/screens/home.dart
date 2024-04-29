@@ -145,35 +145,9 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                       //boxTimestamps[i] = null;
                                     });
                                     // Update the availability of four-wheelers
-                                    int newavailfour =
-                                        parkingSpaceData['availability_four']++;
-                                    parkingSpaceData['availability_four'] =
-                                        newavailfour;
-                                    print("increased");
-                                    // Write the updated capacity to Firebase
-                                    try {
-                                      QuerySnapshot querySnapshot =
-                                          await FirebaseFirestore.instance
-                                              .collection('PARKING SPACES')
-                                              .where('space_id',
-                                                  isEqualTo:
-                                                      int.parse(widget.spaceId))
-                                              .get();
+                                    // Update the availability of four-wheelers
 
-                                      if (querySnapshot.docs.isNotEmpty) {
-                                        DocumentReference docRef =
-                                            querySnapshot.docs.first.reference;
-                                        await docRef.update({
-                                          'availability_four': newavailfour,
-                                        });
-                                        print(
-                                            'Updated availability_four to $newavailfour');
-                                      } else {
-                                        print('Document does not exist');
-                                      }
-                                    } catch (e) {
-                                      print('Error updating Firestore: $e');
-                                    }
+                                    await _increAvailabilityFour();
                                   }
                                 });
                               },
@@ -202,34 +176,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                             confirmedBoxes[i] = value['confirmed'];
                             boxContents[i] = value['content'];
                           });
-
-                          // Decrement the availability of four-wheelers
-                          int newavailfour =
-                              parkingSpaceData['availability_four'] - 1;
-                          parkingSpaceData['availability_four'] = newavailfour;
-                          // Write the updated capacity to Firebase
-                          try {
-                            QuerySnapshot querySnapshot =
-                                await FirebaseFirestore.instance
-                                    .collection('PARKING SPACES')
-                                    .where('space_id',
-                                        isEqualTo: int.parse(widget.spaceId))
-                                    .get();
-
-                            if (querySnapshot.docs.isNotEmpty) {
-                              DocumentReference docRef =
-                                  querySnapshot.docs.first.reference;
-                              await docRef.update({
-                                'availability_four': newavailfour,
-                              });
-                              print(
-                                  'Updated availability_four to $newavailfour');
-                            } else {
-                              print('Document does not exist');
-                            }
-                          } catch (e) {
-                            print('Error updating Firestore: $e');
-                          }
+                          await _decrementAvailabilityFour();
                         }
                       });
                     }
@@ -520,6 +467,128 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
         .collection('PARKING SPACES')
         .where('space_id', isEqualTo: int.parse(widget.spaceId))
         .get();
+  }
+
+  Future<void> _increAvailabilityFour() async {
+    final db = FirebaseFirestore.instance;
+    final QuerySnapshot<Map<String, dynamic>> spaceRef = await db
+        .collection('PARKING SPACES')
+        .where('space_id', isEqualTo: int.parse(widget.spaceId))
+        .get();
+
+    if (spaceRef.docs.isNotEmpty) {
+      final batch = db.batch();
+      final DocumentReference<Map<String, dynamic>> spaceRefDoc =
+          spaceRef.docs.first.reference;
+      print('Referencing document: ${spaceRefDoc.path}');
+
+      final DocumentSnapshot<Map<String, dynamic>> spaceDoc =
+          await spaceRefDoc.get();
+
+      if (spaceDoc.exists) {
+        int currentAvailability = spaceDoc.get('availability_four');
+        int newAvailability = currentAvailability + 1; // increment by 1
+
+        batch.update(spaceRefDoc, {'availability_four': newAvailability});
+        print('Updated availability_four to $newAvailability');
+      } else {
+        print('Document does not exist');
+      }
+
+      try {
+        await batch.commit();
+      } catch (e) {
+        print('Error committing batch write: $e');
+      }
+    } else {
+      print('No documents found');
+    }
+  }
+
+  Future<void> _decrementAvailabilityFour() async {
+    final db = FirebaseFirestore.instance;
+    final QuerySnapshot<Map<String, dynamic>> spaceRef = await db
+        .collection('PARKING SPACES')
+        .where('space_id', isEqualTo: int.parse(widget.spaceId))
+        .get();
+
+    if (spaceRef.docs.isNotEmpty) {
+      final batch = db.batch();
+      final DocumentReference<Map<String, dynamic>> spaceRefDoc =
+          spaceRef.docs.first.reference;
+      print('Referencing document: ${spaceRefDoc.path}');
+
+      final DocumentSnapshot<Map<String, dynamic>> spaceDoc =
+          await spaceRefDoc.get();
+
+      if (spaceDoc.exists) {
+        int currentAvailability = spaceDoc.get('availability_four');
+        int newAvailability = currentAvailability - 1; // decrement by 1
+
+        batch.update(spaceRefDoc, {'availability_four': newAvailability});
+        print('Updated availability_four to $newAvailability');
+      } else {
+        print('Document does not exist');
+      }
+
+      try {
+        await batch.commit();
+      } catch (e) {
+        print('Error committing batch write: $e');
+      }
+    } else {
+      print('No documents found');
+    }
+  }
+
+  Future<void> _updateAvailabilityFour(int newAvailability) async {
+    final db = FirebaseFirestore.instance;
+    final QuerySnapshot<Map<String, dynamic>> spaceRef = await db
+        .collection('PARKING SPACES')
+        .where('space_id', isEqualTo: int.parse(widget.spaceId))
+        .get();
+
+    if (spaceRef.docs.isNotEmpty) {
+      final batch = db.batch();
+      final DocumentReference<Map<String, dynamic>> spaceRefDoc =
+          spaceRef.docs.first.reference;
+      print('Referencing document: ${spaceRefDoc.path}');
+
+      final DocumentSnapshot<Map<String, dynamic>> spaceDoc =
+          await spaceRefDoc.get();
+
+      if (spaceDoc.exists) {
+        final currentAvailability = spaceDoc.get('availability_four');
+        batch.update(spaceRefDoc, {'availability_four': newAvailability});
+        print('Updated availability_four to $newAvailability');
+      } else {
+        print('Document does not exist');
+      }
+
+      try {
+        await batch.commit();
+      } catch (e) {
+        print('Error committing batch write: $e');
+      }
+    } else {
+      print('No documents found');
+    }
+  }
+
+  Future<void> _updateAvailabilityTwo(int newAvailability) async {
+    final db = FirebaseFirestore.instance;
+    final spaceRef = db.collection('PARKING SPACES').doc(widget.spaceId);
+
+    await db.runTransaction((transaction) async {
+      final spaceDoc = await transaction.get(spaceRef);
+      if (spaceDoc.exists) {
+        final currentAvailability = spaceDoc.get('availability_two');
+        transaction.update(spaceRef, {'availability_two': newAvailability});
+        print('Updated availability_two to $newAvailability');
+      } else {
+        print('Document does not exist');
+      }
+    }).catchError((e) => print('Error updating Firestore: $e'));
   }
 }
 
