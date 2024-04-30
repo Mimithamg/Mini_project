@@ -24,20 +24,22 @@ If you prefer using Android Studio for Flutter development, you can follow these
 Follow these steps to get the project up and running:
 
 ### 1. Clone the repository:
-   `
+   ```bash
    git clone https://github.com/Mimithamg/Mini_project
-`
+```
+
 ### 2. Navigate to the project directory:
-   `
-   cd <project-directory>
-   `
+   ```bash
+   cd project-directory
+   ```
+
 ### 3. Get dependencies:
-   `
+   ```bash
    flutter pub get
-   `
+   ```
 ### 4. Run the project:
-   `
+   ```bash
    flutter run
-   `
+   ```
 ## Additional Resources
 If you encounter any issues or have doubts, refer to the [Flutter documentation](https://docs.flutter.dev/), which provides comprehensive guides and documentation on Flutter development.
