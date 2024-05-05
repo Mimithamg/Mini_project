@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:security_app/screens/billingpage.dart';
+import 'package:security_app/screens/numberplate.dart';
 
 class SecurityhomeWidget extends StatefulWidget {
   final String spaceId;
@@ -20,7 +23,10 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
   Map<int, bool> confirmedBoxesTwo = {};
   Map<int, String> boxContentsTwo = {};
   Map<int, Timestamp> boxTimestampsTwo = {};
-
+  Map<int, String> imageUrlFour = {};
+  Map<int, String> imageUrlTwo = {};
+  int max_capacity_four = 0;
+  int max_capacity_two = 0;
   @override
   void dispose() {
     _tabController.dispose();
@@ -41,8 +47,6 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
     double verticalPadding = height * 0.01; // 1% of the screen height
 
     return Scaffold(
-      //backgroundColor: Color(0xFF4B39EF),
-      //backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Color(0xFF4B39EF),
         automaticallyImplyLeading: false,
@@ -64,6 +68,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
               size: 30,
             ),
             onPressed: () {
+              showSearchDialog(context);
               print('IconButton pressed ...');
             },
           ),
@@ -83,26 +88,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                 child: Text('No data found for ID: ${widget.spaceId}'));
           } else {
             var parkingSpaceData = snapshot.data!.docs.first.data();
-            // Print parking space details in terminal
-            // print('Parking Space ID: ${widget.spaceId}');
-            // print('Address: ${parkingSpaceData['address']}');
-            // print(
-            //     'Availability (Four-Wheelers): ${parkingSpaceData['availability_four']}');
-            // print(
-            //     'Availability (Two-Wheelers): ${parkingSpaceData['availability_two']}');
-            // print(
-            //     'Capacity (Four-Wheelers): ${parkingSpaceData['capacity_four']}');
-            // print(
-            //     'Capacity (Two-Wheelers): ${parkingSpaceData['capacity_two']}');
-            // print(
-            //     'Parking Fee per Hour (Four-Wheelers): ${parkingSpaceData['fee_ph_four']}');
-            // print(
-            //     'Parking Fee per Hour (Two-Wheelers): ${parkingSpaceData['fee_ph_two']}');
-            // print('Location: ${parkingSpaceData['location']}');
-            // print('Rating: ${parkingSpaceData['rating']}');
-            // print('Space Name: ${parkingSpaceData['space_name']}');
-            // print('Working Time: ${parkingSpaceData['working_time']}');
-            // // Add more details as needed
+            max_capacity_four = parkingSpaceData['capacity_four'];
             List<Widget> boxesfour = [];
 
             for (int i = 0; i <= parkingSpaceData['capacity_four']; i++) {
@@ -122,8 +108,6 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                               child: Text('Cancel'),
                               onPressed: () => Navigator.pop(
                                 context,
-                                // MaterialPageRoute(
-                                //     builder: (context) => BillingPage()),
                               ),
                             ),
                             TextButton(
@@ -146,11 +130,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                     setState(() {
                                       confirmedBoxes[i] = false;
                                       boxContents[i] = '';
-                                      //boxTimestamps[i] = null;
-                                      //boxTimestamps[i] = null;
                                     });
-                                    // Update the availability of four-wheelers
-                                    // Update the availability of four-wheelers
 
                                     await _increAvailabilityFour();
                                   }
@@ -165,6 +145,8 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                         context,
                         MaterialPageRoute(
                           builder: (context) => BoxDetailsPage(
+                            imageUrl: imageUrlFour,
+                            spaceId: widget.spaceId,
                             boxIndex: i,
                             capacity: parkingSpaceData['capacity_four'],
                             confirmedBoxes: confirmedBoxes,
@@ -186,88 +168,162 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                       });
                     }
                   },
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(horizontalPadding,
-                        verticalPadding, horizontalPadding, 0),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: confirmedBoxes.containsKey(i) &&
-                                confirmedBoxes[i]!
-                            ? Colors.grey // default color when confirmed
-                            : confirmedBoxes.containsKey(i) &&
-                                    !confirmedBoxes[i]!
-                                ? Colors
-                                    .white // change to white when exit confirmed
-                                : Colors
-                                    .white, // default color when not confirmed
-
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 3,
-                            color: Color(0x20000000),
-                            offset: Offset(
-                              0.0,
-                              1,
-                            ),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: height * 0.13,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.02,
+                        vertical: MediaQuery.of(context).size.width * 0.01,
                       ),
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                            horizontalPadding,
-                            verticalPadding,
-                            horizontalPadding,
-                            verticalPadding),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: width * 0.95,
-                                    height: height * 0.1,
-                                    color: Colors
-                                        .white, // Replace with your desired color
-                                    child: Center(
-                                      child: Column(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: confirmedBoxes.containsKey(i) &&
+                                  confirmedBoxes[i]!
+                              ? Colors.grey // default color when confirmed
+                              : confirmedBoxes.containsKey(i) &&
+                                      !confirmedBoxes[i]!
+                                  ? Colors
+                                      .white // change to white when exit confirmed
+                                  : Colors
+                                      .white, // default color when not confirmed
+
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 3,
+                              color: Color(0x20000000),
+                              offset: Offset(
+                                0.0,
+                                1,
+                              ),
+                            )
+                          ],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                              horizontalPadding,
+                              verticalPadding,
+                              horizontalPadding,
+                              verticalPadding),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: width * 0.95,
+                                      height: height * 0.1,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: Colors
+                                            .white, // Replace with your desired color
+                                      ),
+                                      child: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                            MainAxisAlignment.start,
                                         children: [
-                                          boxContents.containsKey(i)
-                                              ? Text(boxContents[i]!)
-                                              : Text(''),
-                                          SizedBox(height: 4),
-                                          confirmedBoxes.containsKey(i) &&
-                                                  confirmedBoxes[i]! &&
-                                                  boxTimestamps.containsKey(i)
-                                              ? Text(
-                                                  'Entry time:  ${DateFormat.jm().format(boxTimestamps[i]!.toDate())}')
-                                              : Text(''),
-                                          SizedBox(height: height * 0.01),
-                                          // boxTimestamps.containsKey(i) &&
-                                          //         boxTimestamps[i] != null
-                                          confirmedBoxes.containsKey(i) &&
-                                                  confirmedBoxes[i]! &&
-                                                  boxTimestamps.containsKey(i)
-                                              ? Text(DateFormat.yMMMd().format(
-                                                  boxTimestamps[i]!.toDate()))
-                                              : Text(''),
-                                          // style: TextStyle(fontSize: 12),
-                                          // ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Container(
+                                              width: width * 0.2,
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text('Slot ${i + 1}'),
+                                                  SizedBox(height: 4),
+                                                  Text(
+                                                    confirmedBoxes.containsKey(
+                                                                i) &&
+                                                            confirmedBoxes[i]!
+                                                        ? 'Filled'
+                                                        : 'Vacant',
+                                                    style: TextStyle(
+                                                      color: confirmedBoxes
+                                                                  .containsKey(
+                                                                      i) &&
+                                                              confirmedBoxes[i]!
+                                                          ? Colors.red
+                                                          : Colors.green,
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 16),
+                                          Container(
+                                            width: width * 0.4,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                boxContents.containsKey(i)
+                                                    ? Text(
+                                                        boxContents[i]!,
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 24),
+                                                      )
+                                                    : Text(''),
+                                                SizedBox(height: 4),
+                                                confirmedBoxes.containsKey(i) &&
+                                                        confirmedBoxes[i]! &&
+                                                        boxTimestamps
+                                                            .containsKey(i)
+                                                    ? Text(
+                                                        'Entry time: ${DateFormat.jm().format(boxTimestamps[i]!.toDate())}',
+                                                        style: TextStyle(
+                                                            fontSize: 12),
+                                                      )
+                                                    : Text(''),
+                                                SizedBox(
+                                                    height: height * 0.005),
+                                                confirmedBoxes.containsKey(i) &&
+                                                        confirmedBoxes[i]! &&
+                                                        boxTimestamps
+                                                            .containsKey(i)
+                                                    ? Text(
+                                                        DateFormat.yMMMd()
+                                                            .format(
+                                                                boxTimestamps[
+                                                                        i]!
+                                                                    .toDate()),
+                                                        style: TextStyle(
+                                                            fontSize: 12),
+                                                      )
+                                                    : Text(''),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(width: 16),
+                                          Container(
+                                            child:
+                                                confirmedBoxes.containsKey(i) &&
+                                                        confirmedBoxes[i]! &&
+                                                        imageUrlFour[i] != null
+                                                    ? Image.network(
+                                                        imageUrlFour[i]!)
+                                                    : null,
+                                          )
                                         ],
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -275,129 +331,254 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                 ),
               );
             }
-
-            List<Widget> boxestwo = [];
+            max_capacity_two = parkingSpaceData['capacity_two'];
+            List<Widget> boxesTwo = [];
 
             for (int i = 0; i <= parkingSpaceData['capacity_two']; i++) {
-              boxestwo.add(
+              boxesTwo.add(
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BoxDetailsPage(
-                          boxIndex: i,
-                          capacity: parkingSpaceData['capacity_two'],
-                          confirmedBoxes: confirmedBoxesTwo,
-                          updateBoxTimestamp: (index, timestamp) {
-                            setState(() {
-                              boxTimestampsTwo[index] = timestamp;
-                            });
-                          },
-                        ),
-                      ),
-                    ).then((value) async {
-                      if (value != null) {
-                        setState(() {
-                          confirmedBoxesTwo[i] = value['confirmed'];
-                          boxContentsTwo[i] = value['content'];
-                        });
+                    if (confirmedBoxesTwo.containsKey(i) &&
+                        confirmedBoxesTwo[i]!) {
+                      // Show dialog to confirm exit
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Confirm Exit'),
+                          content:
+                              Text('Are you sure you want to exit this box?'),
+                          actions: [
+                            TextButton(
+                                child: Text('Cancel'),
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              NumberPlateReader()));
+                                }
+                                //=> Navigator.pop(
+                                //   context,
+                                // ),
 
-                        int newavailtwo =
-                            parkingSpaceData['availability_two'] - 1;
-                        parkingSpaceData['availability_two'] = newavailtwo;
-
-                        try {
-                          QuerySnapshot querySnapshot = await FirebaseFirestore
-                              .instance
-                              .collection('PARKING SPACES')
-                              .where('space_id',
-                                  isEqualTo: int.parse(widget.spaceId))
-                              .get();
-
-                          if (querySnapshot.docs.isNotEmpty) {
-                            DocumentReference docRef =
-                                querySnapshot.docs.first.reference;
-                            await docRef.update({
-                              'availability_two': newavailtwo,
-                            });
-                            print('Updated availability_two to $newavailtwo');
-                          } else {
-                            print('Document does not exist');
-                          }
-                        } catch (e) {
-                          print('Error updating Firestore: $e');
-                        }
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(horizontalPadding,
-                        verticalPadding, horizontalPadding, 0),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: confirmedBoxesTwo.containsKey(i)
-                            ? Colors.grey
-                            : Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 3,
-                            color: Color(0x20000000),
-                            offset: Offset(
-                              0.0,
-                              1,
+                                ),
+                            TextButton(
+                              child: Text('Confirm Exit'),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => BillingPage(
+                                      vehicleNumber: boxContentsTwo[i]!,
+                                      entryTime: boxTimestampsTwo[i]!,
+                                      exitTime: Timestamp.now(),
+                                      parkingSpaceData: parkingSpaceData,
+                                      spaceId: widget.spaceId,
+                                    ),
+                                  ),
+                                ).then((value) async {
+                                  if (value != null && value) {
+                                    // Reset the box status and update Firestore
+                                    setState(() {
+                                      confirmedBoxesTwo[i] = false;
+                                      boxContentsTwo[i] = '';
+                                    });
+                                    await _increAvailabilityTwo();
+                                  }
+                                });
+                              },
                             ),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(12),
+                          ],
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BoxDetailsPage(
+                            imageUrl: imageUrlTwo,
+                            spaceId: widget.spaceId,
+                            boxIndex: i,
+                            capacity: parkingSpaceData['capacity_two'],
+                            confirmedBoxes: confirmedBoxesTwo,
+                            updateBoxTimestamp: (index, timestamp) {
+                              setState(() {
+                                boxTimestampsTwo[index] = timestamp;
+                              });
+                            },
+                          ),
+                        ),
+                      ).then((value) async {
+                        if (value != null) {
+                          setState(() {
+                            confirmedBoxesTwo[i] = value['confirmed'];
+                            boxContentsTwo[i] = value['content'];
+                          });
+                          await _decrementAvailabilityTwo();
+                        }
+                      });
+                    }
+                  },
+                  child: SizedBox(
+                    width: double.infinity, // Adjust width as needed
+                    height: height * 0.13,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.02,
+                        vertical: MediaQuery.of(context).size.width * 0.01,
                       ),
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                            horizontalPadding,
-                            verticalPadding,
-                            horizontalPadding,
-                            verticalPadding),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: width * 0.95,
-                                    height: height * 0.1,
-                                    color: Colors
-                                        .white, // Replace with your desired color
-                                    child: Center(
-                                      child: Column(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: confirmedBoxesTwo.containsKey(i) &&
+                                  confirmedBoxesTwo[i]!
+                              ? Colors.grey // default color when confirmed
+                              : confirmedBoxesTwo.containsKey(i) &&
+                                      !confirmedBoxesTwo[i]!
+                                  ? Colors
+                                      .white // change to white when exit confirmed
+                                  : Colors
+                                      .white, // default color when not confirmed
+
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 3,
+                              color: Color(0x20000000),
+                              offset: Offset(
+                                0.0,
+                                1,
+                              ),
+                            )
+                          ],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                              horizontalPadding,
+                              verticalPadding,
+                              horizontalPadding,
+                              verticalPadding),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: width * 0.95,
+                                      height: height * 0.1,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: Colors
+                                            .white, // Replace with your desired color
+                                      ),
+                                      child: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                            MainAxisAlignment.start,
                                         children: [
-                                          boxContentsTwo.containsKey(i)
-                                              ? Text(boxContentsTwo[i]!)
-                                              : Text(''),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            boxTimestampsTwo.containsKey(i) &&
-                                                    boxTimestampsTwo[i] != null
-                                                ? DateFormat.yMMMd().format(
-                                                    boxTimestampsTwo[i]!
-                                                        .toDate())
-                                                : '',
-                                            style: TextStyle(fontSize: 12),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Container(
+                                              width: width * 0.2,
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text('Slot ${i + 1}'),
+                                                  SizedBox(height: 4),
+                                                  Text(
+                                                    confirmedBoxesTwo
+                                                                .containsKey(
+                                                                    i) &&
+                                                            confirmedBoxesTwo[
+                                                                i]!
+                                                        ? 'Filled'
+                                                        : 'Vacant',
+                                                    style: TextStyle(
+                                                      color: confirmedBoxesTwo
+                                                                  .containsKey(
+                                                                      i) &&
+                                                              confirmedBoxesTwo[
+                                                                  i]!
+                                                          ? Colors.red
+                                                          : Colors.green,
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
                                           ),
+                                          SizedBox(width: 16),
+                                          Container(
+                                            width: width * 0.4,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                boxContentsTwo.containsKey(i)
+                                                    ? Text(
+                                                        boxContentsTwo[i]!,
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 24),
+                                                      )
+                                                    : Text(''),
+                                                SizedBox(height: 4),
+                                                confirmedBoxesTwo
+                                                            .containsKey(i) &&
+                                                        confirmedBoxesTwo[i]! &&
+                                                        boxTimestampsTwo
+                                                            .containsKey(i)
+                                                    ? Text(
+                                                        'Entry time: ${DateFormat.jm().format(boxTimestampsTwo[i]!.toDate())}',
+                                                        style: TextStyle(
+                                                            fontSize: 12),
+                                                      )
+                                                    : Text(''),
+                                                SizedBox(
+                                                    height: height * 0.005),
+                                                confirmedBoxesTwo
+                                                            .containsKey(i) &&
+                                                        confirmedBoxesTwo[i]! &&
+                                                        boxTimestampsTwo
+                                                            .containsKey(i)
+                                                    ? Text(
+                                                        DateFormat.yMMMd()
+                                                            .format(
+                                                                boxTimestampsTwo[
+                                                                        i]!
+                                                                    .toDate()),
+                                                        style: TextStyle(
+                                                            fontSize: 12),
+                                                      )
+                                                    : Text(''),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(width: 16),
+                                          Container(
+                                            child: confirmedBoxesTwo
+                                                        .containsKey(i) &&
+                                                    confirmedBoxesTwo[i]! &&
+                                                    imageUrlTwo[i] != null
+                                                ? Image.network(imageUrlTwo[i]!)
+                                                : null,
+                                          )
                                         ],
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -427,9 +608,6 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                 letterSpacing: 0,
                                 fontWeight: FontWeight.normal,
                               ),
-                              //unselectedLabelStyle: TextStyle(),
-                              //indicatorColor: Color(0xFF4B39EF),
-                              //indicatorWeight: 3,
                               tabs: [
                                 Tab(
                                   text: 'Four wheeler',
@@ -458,7 +636,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
                                   child: ListView(
                                     padding: EdgeInsets.zero,
                                     scrollDirection: Axis.vertical,
-                                    children: boxestwo,
+                                    children: boxesTwo,
                                   ),
                                 ),
                               ],
@@ -556,7 +734,7 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
     }
   }
 
-  Future<void> _updateAvailabilityFour(int newAvailability) async {
+  Future<void> _increAvailabilityTwo() async {
     final db = FirebaseFirestore.instance;
     final QuerySnapshot<Map<String, dynamic>> spaceRef = await db
         .collection('PARKING SPACES')
@@ -573,9 +751,11 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
           await spaceRefDoc.get();
 
       if (spaceDoc.exists) {
-        final currentAvailability = spaceDoc.get('availability_four');
-        batch.update(spaceRefDoc, {'availability_four': newAvailability});
-        print('Updated availability_four to $newAvailability');
+        int currentAvailability = spaceDoc.get('availability_two');
+        int newAvailability = currentAvailability + 1; // increment by 1
+
+        batch.update(spaceRefDoc, {'availability_two': newAvailability});
+        print('Updated availability_two to $newAvailability');
       } else {
         print('Document does not exist');
       }
@@ -590,93 +770,108 @@ class _SecurityhomeWidgetState extends State<SecurityhomeWidget>
     }
   }
 
-  Future<void> _updateAvailabilityTwo(int newAvailability) async {
+  Future<void> _decrementAvailabilityTwo() async {
     final db = FirebaseFirestore.instance;
-    final spaceRef = db.collection('PARKING SPACES').doc(widget.spaceId);
+    final QuerySnapshot<Map<String, dynamic>> spaceRef = await db
+        .collection('PARKING SPACES')
+        .where('space_id', isEqualTo: int.parse(widget.spaceId))
+        .get();
 
-    await db.runTransaction((transaction) async {
-      final spaceDoc = await transaction.get(spaceRef);
+    if (spaceRef.docs.isNotEmpty) {
+      final batch = db.batch();
+      final DocumentReference<Map<String, dynamic>> spaceRefDoc =
+          spaceRef.docs.first.reference;
+      print('Referencing document: ${spaceRefDoc.path}');
+
+      final DocumentSnapshot<Map<String, dynamic>> spaceDoc =
+          await spaceRefDoc.get();
+
       if (spaceDoc.exists) {
-        final currentAvailability = spaceDoc.get('availability_two');
-        transaction.update(spaceRef, {'availability_two': newAvailability});
+        int currentAvailability = spaceDoc.get('availability_two');
+        int newAvailability = currentAvailability - 1; // decrement by 1
+
+        batch.update(spaceRefDoc, {'availability_two': newAvailability});
         print('Updated availability_two to $newAvailability');
       } else {
         print('Document does not exist');
       }
-    }).catchError((e) => print('Error updating Firestore: $e'));
+
+      try {
+        await batch.commit();
+      } catch (e) {
+        print('Error committing batch write: $e');
+      }
+    } else {
+      print('No documents found');
+    }
   }
-}
 
-class BoxDetailsPage extends StatefulWidget {
-  final int boxIndex;
-  final int capacity;
-  final Map<int, bool> confirmedBoxes;
-  final Function(int, Timestamp) updateBoxTimestamp;
-
-  BoxDetailsPage({
-    required this.boxIndex,
-    required this.capacity,
-    required this.confirmedBoxes,
-    required this.updateBoxTimestamp,
-  });
-
-  @override
-  _BoxDetailsPageState createState() => _BoxDetailsPageState();
-}
-
-class _BoxDetailsPageState extends State<BoxDetailsPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _contentController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Vehicle entry details'),
-      ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _contentController,
-                decoration: InputDecoration(labelText: 'Enter vehicle number'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter vehicle number';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    setState(() {
-                      widget.confirmedBoxes[widget.boxIndex] = true;
-                    });
-                    final vehicleData = {
-                      'vehicle_number': _contentController.text,
-                      'entry_time': Timestamp.now(),
-                    };
-                    await FirebaseFirestore.instance
-                        .collection('VEHICLES')
-                        .add(vehicleData);
-                    widget.updateBoxTimestamp(widget.boxIndex, Timestamp.now());
-                    Navigator.pop(context, {
-                      'confirmed': true,
-                      'content': _contentController.text,
-                    });
-                  }
-                },
-                child: Text('Confirm'),
-              ),
-            ],
-          ),
+  void showSearchDialog(BuildContext context) {
+    String searchText = '';
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Search vehicle'),
+        content: TextField(
+          decoration: InputDecoration(hintText: 'Enter vehicle number'),
+          onChanged: (value) {
+            searchText = value;
+          },
         ),
+        actions: [
+          TextButton(
+            child: Text('Search'),
+            onPressed: () {
+              Navigator.pop(context); // Close the dialog
+              // Perform the search
+              List<int> searchResults = [];
+              for (int i = 0; i < max_capacity_four; i++) {
+                if (boxContents[i] != null &&
+                    boxContents[i]!
+                        .toLowerCase()
+                        .contains(searchText.toLowerCase())) {
+                  searchResults.add(i + 1);
+                }
+              }
+
+              showSearchResultsAlertDialog(context, searchResults);
+            },
+          ),
+        ],
       ),
+    );
+  }
+
+  void showSearchResultsAlertDialog(
+      BuildContext context, List<int> searchResults) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          //title: Text(''),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('The vehicle you are searching for is in slot number:'),
+                for (int result in searchResults)
+                  Text(
+                    '$result',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -744,41 +939,6 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // onPressed:
-                  // () async {
-                  //   int newavailfour =
-                  //       widget.parkingSpaceData['availability_four'] + 1;
-                  //   widget.parkingSpaceData['availability_four'] = newavailfour;
-
-                  //   print("increased!!!!!!");
-
-                  //   try {
-                  //     QuerySnapshot querySnapshot = await FirebaseFirestore
-                  //         .instance
-                  //         .collection('PARKING SPACES')
-                  //         .where('space_id',
-                  //             isEqualTo: int.parse(widget.spaceId))
-                  //         .get();
-
-                  //     if (querySnapshot.docs.isNotEmpty) {
-                  //       DocumentReference docRef =
-                  //           querySnapshot.docs.first.reference;
-                  //       await docRef.update({
-                  //         'availability_four': newavailfour,
-                  //       });
-                  //       print(
-                  //           'Updated availability_four  iiii  to $newavailfour');
-                  //     } else {
-                  //       print('Document does not exist');
-                  //     }
-                  //   } catch (e) {
-                  //     print('Error updating Firestore: $e');
-                  //   }
-
-                  //   Navigator.pop(context, true);
-                  //   Navigator.pop(context, true);
-                  // };
-
                   Navigator.pop(context, true);
                   Navigator.pop(context, true);
                 },
