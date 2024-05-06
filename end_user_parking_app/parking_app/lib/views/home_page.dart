@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart'; // Import geolocator package
 import 'package:parking_app/views/near_by_location.dart';
+import 'package:parking_app/views/nearlocation.dart';
+import 'package:parking_app/views/parking_area.dart';
+import 'package:parking_app/views/parkingdetailsscreen.dart';
 import 'package:parking_app/views/search_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -36,7 +39,7 @@ class _HomePageState extends State<HomePage> {
       context,
       MaterialPageRoute(
         builder: (context) => ParkingDetailsScreen(
-          area: area,
+          area: area, data: {}, 
         ),
       ),
     );
@@ -56,57 +59,19 @@ class _HomePageState extends State<HomePage> {
         markerId: MarkerId('thrissur1'),
         position: LatLng(10.552945, 76.222011),
         infoWindow: InfoWindow(title: 'gect cse parking'),
-        onTap: () {
-          _onMarkerTapped(
-            ParkingArea(
-              name: 'gect cse parking',
-              address: 'Address of gect cse parking',
-              workingTime: '9 am to 7 pm',
-              availabilityFourWheelers: 10,
-              availabilityTwoWheelers: 15,
-              feePerHourFourWheelers: 20,
-              feePerHourTwoWheelers: 15,
-              rating: 4,
-            ),
-          );
-        },
+        
       ),
       Marker(
         markerId: MarkerId('thrissur2'),
         position: LatLng(10.57666, 76.20752),
         infoWindow: InfoWindow(title: 'mimis parking'),
-        onTap: () {
-          _onMarkerTapped(
-            ParkingArea(
-              name: 'mimis parking',
-              address: 'Address of mimis parking',
-              workingTime: '8 am to 10 pm',
-              availabilityFourWheelers: 5,
-              availabilityTwoWheelers: 20,
-              feePerHourFourWheelers: 25,
-              feePerHourTwoWheelers: 10,
-              rating: 3.5,
-            ),
-          );
-        },
+       
       ),
       Marker(
         markerId: MarkerId('thrissur3'),
         position: LatLng(10.6074751, 76.148504),
         infoWindow: InfoWindow(title: 'urmis parking'),
-        onTap: () {
-          _onMarkerTapped(
-            ParkingArea(
-              name: 'urmis parking',
-              address: 'Address of urmis parking',
-              workingTime: '7 am to 11 pm',
-              availabilityFourWheelers: 8,
-              availabilityTwoWheelers: 18,
-              feePerHourFourWheelers: 3,
-             rating: 3.5, feePerHourTwoWheelers: 20,
-            ),
-          );
-        },
+        
       )
     ];
   }
