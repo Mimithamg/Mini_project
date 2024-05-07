@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
-import 'package:parking_app/views/near_by_location.dart';
 import 'package:parking_app/views/nearlocation.dart';
 import 'package:parking_app/views/parking_area.dart';
 import 'package:parking_app/views/parkingdetailsscreen.dart';
 import 'package:parking_app/views/search_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -55,16 +56,11 @@ class _HomePageState extends State<HomePage> {
     BitmapDescriptor bikeIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
 
     // Build the info window content with parking spot name and availability
-    String infoWindowText = '''
-    
-    Available 2 Wheelers: $availabilityTwoWheelers
-    Available 4 Wheelers: $availabilityFourWheelers
-    ''';
 
     // Customize the snippet with symbols for four-wheelers and two-wheelers
     String snippet = '''
     🚗: $availabilityFourWheelers 
-    🏍️: $availabilityTwoWheelers 
+    Avai: $availabilityTwoWheelers 
     ''';
 
     ParkingArea area = ParkingArea(
@@ -76,7 +72,7 @@ class _HomePageState extends State<HomePage> {
       feePerHourTwoWheelers: doc['fee_ph_two'].toDouble(),
       feePerHourFourWheelers: doc['fee_ph_four'].toDouble(),
       address: doc['address'],
-      isOpen: true, // You can set this based on some logic
+      isOpen: _checkOpenStatus(doc['working_time']), // You can set this based on some logic
       latitude: latitude,
       longitude: longitude,
     );
@@ -95,30 +91,243 @@ class _HomePageState extends State<HomePage> {
         onTap: () {
           // Handle tap on info window content here
           // You can navigate to ParkingDetailsScreen or do any other action
-          _onMarkerTapped(area);
+          _onMarkerTapped(context,area);
         },// Display availability in the info window
       ),
       onTap: () {
         // Navigate to ParkingDetailsScreen with the ParkingArea object
-        _onMarkerTapped(area);
+        _onMarkerTapped(context,area);
       }
       
     );
   }).toList();
 }
+bool _checkOpenStatus(String workingTime) {
+    List<String> workingHours = workingTime.split(' to ');
+    TimeOfDay openingTime = _parseTimeString(workingHours[0].trim());
+    TimeOfDay closingTime = _parseTimeString(workingHours[1].trim());
 
+    // Get the current time
+    TimeOfDay currentTime = TimeOfDay.now();
 
-
-  void _onMarkerTapped(ParkingArea area) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ParkingDetailsScreen(
-          area: area, data: {}, 
-        ),
-      ),
-    );
+    // Check if the current time is within the working hours
+    return currentTime.hour >= openingTime.hour &&
+        currentTime.hour < closingTime.hour;
   }
+
+  TimeOfDay _parseTimeString(String timeString) {
+    bool isPM = timeString.toLowerCase().contains('pm');
+    List<String> parts = timeString.replaceAll(RegExp(r'[^0-9]'), '').split('');
+    int hour = int.parse(parts[0]);
+    if (isPM && hour != 12) {
+      hour += 12;
+    } else if (!isPM && hour == 12) {
+      hour = 0;
+    }
+    int minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+void _onMarkerTapped(BuildContext context, ParkingArea area) {
+  double _dragInitialPosition = 0;
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (BuildContext context) {
+      return GestureDetector(
+        onVerticalDragDown: (details) {
+          _dragInitialPosition = details.globalPosition.dy;
+        },
+        onVerticalDragUpdate: (details) {
+          double deltaY = details.globalPosition.dy - _dragInitialPosition;
+          if (deltaY > 0) {
+            Navigator.pop(context);
+          }
+        },
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.5,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  area.name,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Text('Rating: '),
+                    // Display rating as stars
+                    RatingBar.builder(
+                      initialRating: area.rating,
+                      minRating: 0,
+                      direction: Axis.horizontal,
+                      allowHalfRating: true,
+                      itemCount: 5,
+                      itemSize: 16,
+                      itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                      itemBuilder: (context, _) => Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                      ),
+                      ignoreGestures: true,
+                      onRatingUpdate: (double value) {},
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      '${area.rating}', // Display rating as number
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Column(
+                      children: [
+                        Icon(
+                          Icons.directions_car,
+                          color: Colors.black,
+                          size: 40,
+                        ),
+                        Text(
+                          '${area.availabilityFourWheelers}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 30,
+                            color: area.availabilityFourWheelers < 5 ? Colors.red : Colors.green,
+                          ),
+                        ),
+                        Text(
+                          'Fee/hr: ₹${area.feePerHourFourWheelers}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(width: 16),
+                    Column(
+                      children: [
+                        Icon(
+                          Icons.motorcycle,
+                          color: Colors.black,
+                          size: 40,
+                        ),
+                        Text(
+                          '${area.availabilityTwoWheelers}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 30,
+                            color: area.availabilityTwoWheelers < 5 ? Colors.red : Colors.green,
+                          ),
+                        ),
+                        Text(
+                          'Fee/hr: ₹${area.feePerHourTwoWheelers}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '${area.address}',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      area.isOpen ? 'OPEN' : 'CLOSED',
+                      style: TextStyle(
+                        color: area.isOpen ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      '${area.workingTime}',
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        _launchMaps(area.latitude, area.longitude);
+                      },
+                      child: Text('Directions'),
+                    ),
+                    SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>ParkingDetailsScreen(area: area, data: {},),
+                          ),
+                        );
+                      },
+                      child: Text('More Details'),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('Close'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
+  void _launchMaps(double latitude, double longitude) async {
+    final url = 'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+
 
   Future<void> _getUserLocation() async {
     Position position = await Geolocator.getCurrentPosition(
