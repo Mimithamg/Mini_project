@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart'; // Import geolocator package
+import 'package:geolocator/geolocator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:parking_app/views/near_by_location.dart';
 import 'package:parking_app/views/nearlocation.dart';
 import 'package:parking_app/views/parking_area.dart';
@@ -34,6 +35,80 @@ class _HomePageState extends State<HomePage> {
 ]
 ''';
 
+  Future<List<QueryDocumentSnapshot>> _getParkingSpots() async {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('PARKING SPACES').get();
+    return querySnapshot.docs;
+  }
+
+ List<Marker> _createMarkers(List<QueryDocumentSnapshot> parkingSpots) {
+  return parkingSpots.map((doc) {
+    double latitude = doc['location'].latitude;
+    double longitude = doc['location'].longitude;
+    String name = doc['space_name'];
+    int availabilityTwoWheelers = doc['availability_two'];
+    int availabilityFourWheelers = doc['availability_four'];
+    
+    // Create the marker icon for four-wheelers
+    BitmapDescriptor carIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+    // Create the marker icon for two-wheelers
+    BitmapDescriptor bikeIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
+
+    // Build the info window content with parking spot name and availability
+    String infoWindowText = '''
+    
+    Available 2 Wheelers: $availabilityTwoWheelers
+    Available 4 Wheelers: $availabilityFourWheelers
+    ''';
+
+    // Customize the snippet with symbols for four-wheelers and two-wheelers
+    String snippet = '''
+    🚗: $availabilityFourWheelers 
+    🏍️: $availabilityTwoWheelers 
+    ''';
+
+    ParkingArea area = ParkingArea(
+      name: name, 
+      rating: doc['rating'].toDouble(),
+      workingTime: doc['working_time'],
+      availabilityTwoWheelers: availabilityTwoWheelers,
+      availabilityFourWheelers: availabilityFourWheelers,
+      feePerHourTwoWheelers: doc['fee_ph_two'].toDouble(),
+      feePerHourFourWheelers: doc['fee_ph_four'].toDouble(),
+      address: doc['address'],
+      isOpen: true, // You can set this based on some logic
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    return Marker(
+      markerId: MarkerId(name),
+      position: LatLng(latitude, longitude),
+      icon: availabilityFourWheelers > 0
+          ? carIcon
+          : availabilityTwoWheelers > 0
+              ? bikeIcon
+              : BitmapDescriptor.defaultMarker,
+      infoWindow: InfoWindow(
+        title: name,
+        snippet: snippet, 
+        onTap: () {
+          // Handle tap on info window content here
+          // You can navigate to ParkingDetailsScreen or do any other action
+          _onMarkerTapped(area);
+        },// Display availability in the info window
+      ),
+      onTap: () {
+        // Navigate to ParkingDetailsScreen with the ParkingArea object
+        _onMarkerTapped(area);
+      }
+      
+    );
+  }).toList();
+}
+
+
+
   void _onMarkerTapped(ParkingArea area) {
     Navigator.push(
       context,
@@ -51,29 +126,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _initialPosition = LatLng(position.latitude, position.longitude);
     });
-  }
-
-  List<Marker> _getMarkers() {
-    return [
-      Marker(
-        markerId: MarkerId('thrissur1'),
-        position: LatLng(10.552945, 76.222011),
-        infoWindow: InfoWindow(title: 'gect cse parking'),
-        
-      ),
-      Marker(
-        markerId: MarkerId('thrissur2'),
-        position: LatLng(10.57666, 76.20752),
-        infoWindow: InfoWindow(title: 'mimis parking'),
-       
-      ),
-      Marker(
-        markerId: MarkerId('thrissur3'),
-        position: LatLng(10.6074751, 76.148504),
-        infoWindow: InfoWindow(title: 'urmis parking'),
-        
-      )
-    ];
   }
 
 @override
@@ -151,20 +203,33 @@ void initState() {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: _initialPosition,
-                      zoom: 15,
-                    ),
-                    onMapCreated: (GoogleMapController controller) {
-                      mapController = controller;
-                      controller.setMapStyle(_mapStyleString);
-                      
+                  child: FutureBuilder<List<QueryDocumentSnapshot>>(
+                    future: _getParkingSpots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else {
+                        List<QueryDocumentSnapshot> parkingSpots = snapshot.data ?? [];
+                        return GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: _initialPosition,
+                            zoom: 15,
+                          ),
+                          onMapCreated: (GoogleMapController controller) {
+                            mapController = controller;
+                            controller.setMapStyle(_mapStyleString);
+                          },
+                          myLocationEnabled: true,
+                          myLocationButtonEnabled: true,
+                          markers: Set<Marker>.of(_createMarkers(parkingSpots)),
+                          
+                          style: JsonEncoder().convert(_mapStyleString),
+                        );
+                        
+                      }
                     },
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                     markers: Set<Marker>.of(_getMarkers()),
-                      style: JsonEncoder().convert(_mapStyleString),
                   ),
                 ),
                 Padding(
@@ -200,6 +265,8 @@ void initState() {
             ),
     );
   }
+}
+
 
   void confirmLogout(BuildContext context) {
     showDialog(
@@ -240,4 +307,3 @@ void initState() {
       );
     }
   }
-}

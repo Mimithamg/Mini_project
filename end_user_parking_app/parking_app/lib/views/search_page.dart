@@ -167,7 +167,7 @@ class _SearchPageState extends State<SearchPage> {
                   List<ParkingArea> areas = snapshot.data ?? [];
                   filteredAreas = areas; // Assign initial areas
                   return ListView(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: filteredAreas.map((area) {
                       return GestureDetector(
                         onTap: () {
