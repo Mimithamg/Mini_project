@@ -234,37 +234,33 @@ class _AccountCreationScreenState extends State<AccountCreationScreen> {
                           if (_formKey.currentState!.validate()) {
                             UserCredential?
                                 userCredential; // Define userCredential variable
-                            try {
-                              // Create user with email and password
+                                                        try {
                               final userCredential = await FirebaseAuth.instance
                                   .createUserWithEmailAndPassword(
                                 email: controller.email.text.trim(),
                                 password: controller.password.text.trim(),
                               );
 
-                              // Access user from userCredential
                               final user = userCredential.user;
 
-                              // Check if user is not null
                               if (user != null) {
-                                // Create user document in Firestore
                                 await createUserDocument(user, controller);
-
-                                // Navigate to home page or any other destination
                                 Navigator.pushNamed(context, '/home');
                               } else {
                                 throw Exception("User is null");
                               }
                             } catch (e) {
-                              // Registration failed, handle error
+                              // Print the exception for debugging
                               print('Error registering user: $e');
+
+                              // Show a snackbar with the error message
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(
-                                      'Registration failed. Please try again.'),
+                                  content: Text('Registration failed. Please try again.'),
                                 ),
                               );
                             }
+
                           }
                         },
                         child: Text(

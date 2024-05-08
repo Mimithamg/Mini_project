@@ -58,10 +58,7 @@ class _HomePageState extends State<HomePage> {
     // Build the info window content with parking spot name and availability
 
     // Customize the snippet with symbols for four-wheelers and two-wheelers
-    String snippet = '''
-    🚗: $availabilityFourWheelers 
-    Avai: $availabilityTwoWheelers 
-    ''';
+    
 
     ParkingArea area = ParkingArea(
       name: name, 
@@ -87,7 +84,7 @@ class _HomePageState extends State<HomePage> {
               : BitmapDescriptor.defaultMarker,
       infoWindow: InfoWindow(
         title: name,
-        snippet: snippet, 
+        
         onTap: () {
           // Handle tap on info window content here
           // You can navigate to ParkingDetailsScreen or do any other action
@@ -114,6 +111,7 @@ bool _checkOpenStatus(String workingTime) {
     return currentTime.hour >= openingTime.hour &&
         currentTime.hour < closingTime.hour;
   }
+  
 
   TimeOfDay _parseTimeString(String timeString) {
     bool isPM = timeString.toLowerCase().contains('pm');
@@ -346,7 +344,15 @@ void initState() {
     _initialPosition = LatLng(10.525423, 76.213470); // Thrissur's coordinates
   });
 }
-
+ void _animateToLocation(double latitude, double longitude) {
+    // Animate the map to the specified location
+    mapController.animateCamera(
+      CameraUpdate.newLatLngZoom(
+        LatLng(latitude, longitude),
+        14.7,
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
    
@@ -447,23 +453,32 @@ void initState() {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => NearbyLocationsPage()),
-                          );
-                          // Handle Nearby Spaces option
-                          // Navigate to nearby spaces screen or perform related actions
+                        onPressed: () async {
+                                final selectedLocation = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NearbyLocationsPage()),
+                         );
+                         if (selectedLocation != null) {
+                          double latitude = selectedLocation['latitude'];
+                          double longitude = selectedLocation['longitude'];
+                          _animateToLocation(latitude, longitude);
+                        }
+
                         },
                         child: const Text('Nearby Spaces'),
                       ),
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => SearchPage()),
-                          );
+                        onPressed: () async {
+                                final selectedLocation = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => SearchPage()),
+                         );
+                         if (selectedLocation != null) {
+                          double latitude = selectedLocation['latitude'];
+                          double longitude = selectedLocation['longitude'];
+                          _animateToLocation(latitude, longitude);
+                        }
+
                         },
                         child: Text('Search'),
                       ),

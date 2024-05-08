@@ -130,246 +130,264 @@ class _SearchPageState extends State<SearchPage> {
       print('Could not launch $googleMapsUrl');
     }
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Search Parking Areas'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: (value) {
-                filterSearchResults(value);
-              },
-              decoration: InputDecoration(
-                labelText: "Search",
-                hintText: "Search for parking areas",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text('Search Parking Areas'),
+    ),
+    body: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            onChanged: (value) {
+              filterSearchResults(value);
+            },
+            decoration: InputDecoration(
+              labelText: "Search",
+              hintText: "Search for parking areas",
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(25.0)),
               ),
             ),
           ),
-          Expanded(
-            child: FutureBuilder<List<ParkingArea>>(
-              future: parkingAreas,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else {
-                  List<ParkingArea> areas = snapshot.data ?? [];
-                  filteredAreas = areas; // Assign initial areas
-                  return ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: filteredAreas.map((area) {
-                      return GestureDetector(
-                        onTap: () {
-                          navigateToParkingDetailsPage(area);
-                        },
-                        child: Container(
-                          margin: EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
+        ),
+        Expanded(
+          child: FutureBuilder<List<ParkingArea>>(
+            future: parkingAreas,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else {
+                List<ParkingArea> areas = snapshot.data ?? [];
+                filteredAreas = areas; // Assign initial areas
+                return ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: filteredAreas.map((area) {
+                    return GestureDetector(
+                      onTap: () {
+                        navigateToParkingDetailsPage(area);
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage:
+                                        AssetImage('assets/parking.png'),
+                                  ),
+                                  SizedBox(width: 20),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          area.name,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.location_on), // Location icon
+                                            SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                area.address,
+                                                // overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Text('Rating: '),
+                                            // Display rating as stars
+                                            RatingBar.builder(
+                                              initialRating: area.rating,
+                                              minRating: 0,
+                                              direction: Axis.horizontal,
+                                              allowHalfRating: true,
+                                              itemCount: 5,
+                                              itemSize: 16,
+                                              itemPadding:
+                                                  EdgeInsets.symmetric(horizontal: 2.0),
+                                              itemBuilder: (context, _) => Icon(
+                                                Icons.star,
+                                                color: Colors.amber,
+                                              ),
+                                              ignoreGestures: true,
+                                              onRatingUpdate: (double value) {},
+                                              // Disable rating changes from UI
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              '${area.rating}', // Display rating as number
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.motorcycle), // Bike icon
+                                            SizedBox(width: 8),
+                                            Flexible( // Wrap with Flexible
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Available:',
+                                                    style: TextStyle(
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '${area.availabilityTwoWheelers}',
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: area.availabilityTwoWheelers < 5 ? Colors.red : Colors.green,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Fee/hr: ₹${area.feePerHourTwoWheelers}',
+                                                    style: TextStyle(
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            SizedBox(width: 16),
+                                            Icon(Icons.directions_car), // Car icon
+                                            SizedBox(width: 8),
+                                            Flexible( // Wrap with Flexible
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Available:',
+                                                    style: TextStyle(
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '${area.availabilityFourWheelers}',
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: area.availabilityFourWheelers < 5 ? Colors.red : Colors.green,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Fee/hr: ₹${area.feePerHourFourWheelers}',
+                                                    style: TextStyle(
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              area.isOpen ? 'OPEN' : 'CLOSED',
+                                              style: TextStyle(
+                                                color: area.isOpen
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              '${area.workingTime}',
+                                              style: TextStyle(
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 20),
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: IconButton(
+                                      icon: Icon(Icons.directions),
+                                      color: Colors.white,
+                                      onPressed: () {
+                                        _navigateToLocation(
+                                            area.latitude, area.longitude);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context, {'latitude': area.latitude, 'longitude':area.longitude});
+                                    },
+                                    child: Text('Show on Map'),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  radius: 20,
-                                  backgroundImage:
-                                      AssetImage('assets/parking.png'),
-                                ),
-                                SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        area.name,
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.location_on), // Location icon
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              area.address,
-                                              // overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 4),
-                                     Row(
-                                  children: [
-                                    Text('Rating: '),
-                                    // Display rating as stars
-                                    RatingBar.builder(
-                                      initialRating: area.rating,
-                                      minRating: 0,
-                                      direction: Axis.horizontal,
-                                      allowHalfRating: true,
-                                      itemCount: 5,
-                                      itemSize: 16,
-                                      itemPadding:
-                                          EdgeInsets.symmetric(horizontal: 2.0),
-                                      itemBuilder: (context, _) => Icon(
-                                        Icons.star,
-                                        color: Colors.amber,
-                                      ),
-                                      ignoreGestures: true, onRatingUpdate: (double value) {  }, // Disable rating changes from UI
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      '${area.rating}', // Display rating as number
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                  ],
-                                ),
-                                      SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.motorcycle), // Bike icon
-                                          SizedBox(width: 8),
-                                          Flexible( // Wrap with Flexible
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Available:',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '${area.availabilityTwoWheelers}',
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: area.availabilityTwoWheelers < 5 ? Colors.red : Colors.green,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  'Fee/hr: ₹${area.feePerHourTwoWheelers}',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          SizedBox(width: 16),
-                                          Icon(Icons.directions_car), // Car icon
-                                          SizedBox(width: 8),
-                                          Flexible( // Wrap with Flexible
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Available:',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '${area.availabilityFourWheelers}',
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: area.availabilityFourWheelers < 5 ? Colors.red : Colors.green,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  'Fee/hr: ₹${area.feePerHourFourWheelers}',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            area.isOpen ? 'OPEN' : 'CLOSED',
-                                            style: TextStyle(
-                                              color: area.isOpen
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            '${area.workingTime}',
-                                            style: TextStyle(
-                                              color: Colors.grey[700],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: IconButton(
-                                    icon: Icon(Icons.directions),
-                                    color: Colors.white,
-                                    onPressed: () {
-                                      _navigateToLocation(
-                                          area.latitude, area.longitude);
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
-                      );
-                    }).toList(),
-                  );
-                }
-              },
-            ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              }
+            },
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

@@ -12,7 +12,7 @@ class NearbyLocationsPage extends StatefulWidget {
 }
 
 class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
-  late Future<List<ParkingArea>> parkingAreas;
+  late Future<List<ParkingArea>> parkingAreas= Future.value([]);
   late List<ParkingArea> allAreas = []; // Original list of all parking areas
   late List<ParkingArea> filteredAreas = [];
    late Position _currentPosition = Position(
@@ -223,9 +223,12 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
                           ),
                           child: Padding(
                             padding: EdgeInsets.all(16),
-                            child: Row(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                 children: [ 
                                 CircleAvatar(
                                   radius: 20,
                                   backgroundImage:
@@ -403,10 +406,25 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
                                     },
                                   ),
                                 ),
+                                
+
                               ],
                             ),
+                            SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context, {'latitude': area.latitude, 'longitude':area.longitude});
+                                    },
+                                    child: Text('Show on Map'),
+                                  ),
+                                ],
+                              ),]
                           ),
                         ),
+                      ),
                       );
                     }).toList(),
                   );

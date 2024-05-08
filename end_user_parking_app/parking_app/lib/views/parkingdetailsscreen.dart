@@ -14,6 +14,17 @@ class ParkingDetailsScreen extends StatefulWidget {
 }
 
 class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
+
+
+  void _navigateToLocation(double latitude, double longitude) async {
+    String googleMapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+    if (await canLaunch(googleMapsUrl)) {
+      await launch(googleMapsUrl);
+    } else {
+      print('Could not launch $googleMapsUrl');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     TimeOfDay _parseTimeString(String timeString) {
@@ -144,7 +155,10 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _navigateToLocation(
+                                            widget.area.latitude, widget.area.longitude);
+                    },
                     icon: Icon(
                       Icons.directions_rounded,
                       color: Color(0xff567DF4),
@@ -369,7 +383,8 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                              print('Button pressed ...');
+                               _navigateToLocation(
+                                            widget.area.latitude, widget.area.longitude);
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xff567DF4),
