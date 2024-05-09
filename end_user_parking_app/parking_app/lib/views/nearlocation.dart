@@ -73,6 +73,7 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
         isOpen: _checkOpenStatus(doc['working_time']),
         latitude: doc['location'].latitude,
         longitude: doc['location'].longitude,
+        space_id:doc['space_id'],
       ));
     }
   });
@@ -126,7 +127,7 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ParkingDetailsScreen(area: area, data: {}),
+        builder: (context) => ParkingDetailsScreen(area: area,data:{} ),
       ),
     );
   }
@@ -416,7 +417,7 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
                                 children: [
                                   ElevatedButton(
                                     onPressed: () {
-                                      Navigator.pop(context, {'latitude': area.latitude, 'longitude':area.longitude});
+                                      Navigator.pop(context, area);
                                     },
                                     child: Text('Show on Map'),
                                   ),

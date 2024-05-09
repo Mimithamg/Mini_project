@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:parking_app/views/booking_screen.dart';
 import 'package:parking_app/views/parking_area.dart';
 import 'package:parking_app/views/search_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -134,6 +135,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                             style: TextStyle(
                               fontFamily: 'Readex Pro',
                               letterSpacing: 0,
+                              
                             ),
                           ),
                           Text(
@@ -173,38 +175,39 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     Container(
-                      width: 516,
-                      height: 58,
-                      decoration: BoxDecoration(),
-                      child: Align(
-                        alignment: AlignmentDirectional(0, 0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Align(
-                              alignment: AlignmentDirectional(-1, 0),
-                              child: Icon(
-                                Icons.location_pin,
-                                color: Colors.grey,
-                                size: 34,
-                              ),
-                            ),
-                            Align(
-                              alignment: AlignmentDirectional(0, 0),
-                              child: Text(
-                                '${widget.area.address ?? "Address not available"}',
-                                style: TextStyle(
-                                  fontFamily: 'Readex Pro',
-                                  letterSpacing: 0,
+                          width: 516,
+                          height:56,
+                          decoration: BoxDecoration(),
+                          child: Align(
+                            alignment: AlignmentDirectional(0, 0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                 const Align(
+                                  alignment: AlignmentDirectional(-10, 0),
+                                  child: Icon(
+                                    Icons.location_pin,
+                                    color: Colors.grey,
+                                    size: 34,
+                                  ),
                                 ),
-                              ),
+                                SizedBox(width: 10), // Add some space between icon and text
+                                Expanded(
+                                 // Wrap the text widget in an Expanded widget
+                                  child: Text(
+                                    '${widget.area.address ?? "Address not available"}',
+                                    style: TextStyle(
+                                      fontFamily: 'Readex Pro',
+                                      letterSpacing: 0,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
                     Container(
                       width: 516,
                       height: 58,
@@ -356,8 +359,13 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                         Container(
                           width: 150,
                           child: ElevatedButton(
-                            onPressed: () {
-                              print('Button pressed ...');
+                           onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookingScreen(spaceId: widget.area.space_id),
+                                ),
+                              );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xff567DF4),

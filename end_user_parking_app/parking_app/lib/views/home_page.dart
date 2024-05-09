@@ -53,10 +53,9 @@ class _HomePageState extends State<HomePage> {
     // Create the marker icon for four-wheelers
     BitmapDescriptor carIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
     // Create the marker icon for two-wheelers
-    BitmapDescriptor bikeIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
-
+    double hue =BitmapDescriptor.hueBlue;
     // Build the info window content with parking spot name and availability
-
+    BitmapDescriptor markerIcon = BitmapDescriptor.defaultMarkerWithHue(hue);
     // Customize the snippet with symbols for four-wheelers and two-wheelers
     
 
@@ -72,16 +71,13 @@ class _HomePageState extends State<HomePage> {
       isOpen: _checkOpenStatus(doc['working_time']), // You can set this based on some logic
       latitude: latitude,
       longitude: longitude,
+      space_id:doc['space_id'],
     );
 
     return Marker(
       markerId: MarkerId(name),
       position: LatLng(latitude, longitude),
-      icon: availabilityFourWheelers > 0
-          ? carIcon
-          : availabilityTwoWheelers > 0
-              ? bikeIcon
-              : BitmapDescriptor.defaultMarker,
+      icon: markerIcon,
       infoWindow: InfoWindow(
         title: name,
         
@@ -125,7 +121,7 @@ bool _checkOpenStatus(String workingTime) {
     int minute = parts.length > 1 ? int.parse(parts[1]) : 0;
     return TimeOfDay(hour: hour, minute: minute);
   }
-
+  
 void _onMarkerTapped(BuildContext context, ParkingArea area) {
   double _dragInitialPosition = 0;
 
@@ -286,7 +282,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>ParkingDetailsScreen(area: area, data: {},),
+                            builder: (context) =>ParkingDetailsScreen(area: area,data:{}),
                           ),
                         );
                       },
@@ -344,14 +340,15 @@ void initState() {
     _initialPosition = LatLng(10.525423, 76.213470); // Thrissur's coordinates
   });
 }
- void _animateToLocation(double latitude, double longitude) {
+ void _animateToLocation(ParkingArea area) {
     // Animate the map to the specified location
     mapController.animateCamera(
       CameraUpdate.newLatLngZoom(
-        LatLng(latitude, longitude),
-        14.7,
+        LatLng(area.latitude, area.longitude),
+        16.9,
       ),
     );
+    _onMarkerTapped(context, area);
   }
   @override
   Widget build(BuildContext context) {
@@ -454,14 +451,12 @@ void initState() {
                     children: [
                       ElevatedButton(
                         onPressed: () async {
-                                final selectedLocation = await Navigator.push(
+                                final selectedParkingArea  = await Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => NearbyLocationsPage()),
                          );
-                         if (selectedLocation != null) {
-                          double latitude = selectedLocation['latitude'];
-                          double longitude = selectedLocation['longitude'];
-                          _animateToLocation(latitude, longitude);
+                         if (selectedParkingArea != null) {
+                          _animateToLocation(selectedParkingArea);
                         }
 
                         },
@@ -469,14 +464,12 @@ void initState() {
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                                final selectedLocation = await Navigator.push(
+                                final selectedParkingArea  = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => SearchPage()),
+                              MaterialPageRoute(builder: (context) =>SearchPage ()),
                          );
-                         if (selectedLocation != null) {
-                          double latitude = selectedLocation['latitude'];
-                          double longitude = selectedLocation['longitude'];
-                          _animateToLocation(latitude, longitude);
+                         if (selectedParkingArea != null) {
+                          _animateToLocation(selectedParkingArea);
                         }
 
                         },

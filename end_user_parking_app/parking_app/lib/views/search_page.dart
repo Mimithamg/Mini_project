@@ -44,6 +44,7 @@ class _SearchPageState extends State<SearchPage> {
         isOpen: _checkOpenStatus(doc['working_time']),
         latitude: doc['location'].latitude,
         longitude: doc['location'].longitude,
+        space_id:doc['space_id'],
       ));
     });
 
@@ -92,7 +93,7 @@ class _SearchPageState extends State<SearchPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ParkingDetailsScreen(area: area, data: {}, ),
+        builder: (context) => ParkingDetailsScreen(area: area,data:{} ),
       ),
     );
   }
@@ -346,8 +347,8 @@ Widget build(BuildContext context) {
                                   ),
                                   SizedBox(width: 20),
                                   Container(
-                                    width: 50,
-                                    height: 50,
+                                    width: 55,
+                                    height: 55,
                                     decoration: BoxDecoration(
                                       color: Colors.blue,
                                       shape: BoxShape.circle,
@@ -360,6 +361,7 @@ Widget build(BuildContext context) {
                                             area.latitude, area.longitude);
                                       },
                                     ),
+                                
                                   ),
                                 ],
                               ),
@@ -369,7 +371,7 @@ Widget build(BuildContext context) {
                                 children: [
                                   ElevatedButton(
                                     onPressed: () {
-                                      Navigator.pop(context, {'latitude': area.latitude, 'longitude':area.longitude});
+                                      Navigator.pop(context, area);
                                     },
                                     child: Text('Show on Map'),
                                   ),
