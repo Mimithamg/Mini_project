@@ -6,17 +6,17 @@ import 'package:parking_app/views/parking_area.dart';
 import 'package:parking_app/views/search_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
+
 class ParkingDetailsScreen extends StatefulWidget {
   final ParkingArea area;
-  const ParkingDetailsScreen({super.key, required this.area, required Map<String, dynamic> data});
+  const ParkingDetailsScreen(
+      {super.key, required this.area, required Map<String, dynamic> data});
 
   @override
   State<ParkingDetailsScreen> createState() => _ParkingDetailsScreenState();
 }
 
 class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
-
-
   void _navigateToLocation(double latitude, double longitude) async {
     String googleMapsUrl =
         'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
@@ -26,6 +26,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
       print('Could not launch $googleMapsUrl');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     TimeOfDay _parseTimeString(String timeString) {
@@ -135,7 +136,6 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                             style: TextStyle(
                               fontFamily: 'Readex Pro',
                               letterSpacing: 0,
-                              
                             ),
                           ),
                           Text(
@@ -159,7 +159,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                   IconButton(
                     onPressed: () {
                       _navigateToLocation(
-                                            widget.area.latitude, widget.area.longitude);
+                          widget.area.latitude, widget.area.longitude);
                     },
                     icon: Icon(
                       Icons.directions_rounded,
@@ -175,39 +175,41 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     Container(
-                          width: 516,
-                          height:56,
-                          decoration: BoxDecoration(),
-                          child: Align(
-                            alignment: AlignmentDirectional(0, 0),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                 const Align(
-                                  alignment: AlignmentDirectional(-10, 0),
-                                  child: Icon(
-                                    Icons.location_pin,
-                                    color: Colors.grey,
-                                    size: 34,
-                                  ),
-                                ),
-                                SizedBox(width: 10), // Add some space between icon and text
-                                Expanded(
-                                 // Wrap the text widget in an Expanded widget
-                                  child: Text(
-                                    '${widget.area.address ?? "Address not available"}',
-                                    style: TextStyle(
-                                      fontFamily: 'Readex Pro',
-                                      letterSpacing: 0,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                      width: 516,
+                      height: 56,
+                      decoration: BoxDecoration(),
+                      child: Align(
+                        alignment: AlignmentDirectional(0, 0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Align(
+                              alignment: AlignmentDirectional(-10, 0),
+                              child: Icon(
+                                Icons.location_pin,
+                                color: Colors.grey,
+                                size: 34,
+                              ),
                             ),
-                          ),
+                            SizedBox(
+                                width:
+                                    10), // Add some space between icon and text
+                            Expanded(
+                              // Wrap the text widget in an Expanded widget
+                              child: Text(
+                                '${widget.area.address ?? "Address not available"}',
+                                style: TextStyle(
+                                  fontFamily: 'Readex Pro',
+                                  letterSpacing: 0,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+                    ),
                     Container(
                       width: 516,
                       height: 58,
@@ -359,11 +361,14 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                         Container(
                           width: 150,
                           child: ElevatedButton(
-                           onPressed: () {
+                            onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => BookingScreen(spaceId: widget.area.space_id),
+                                  builder: (context) => BookingScreen(
+                                    spaceId: widget.area.space_id,
+                                    spaceName: widget.area.name,
+                                  ),
                                 ),
                               );
                             },
@@ -391,8 +396,8 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                               _navigateToLocation(
-                                            widget.area.latitude, widget.area.longitude);
+                              _navigateToLocation(
+                                  widget.area.latitude, widget.area.longitude);
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xff567DF4),
@@ -411,7 +416,6 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                                 letterSpacing: 0,
                               ),
                             ),
-                          
                           ),
                         ),
                       ],
@@ -426,10 +430,11 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
     );
   }
 
-void _launchMaps() async {
+  void _launchMaps() async {
     final latitude = widget.area.latitude; // Replace with actual latitude
     final longitude = widget.area.longitude; // Replace with actual longitude
-    final url = 'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
+    final url =
+        'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
 
     if (await canLaunch(url)) {
       await launch(url);
