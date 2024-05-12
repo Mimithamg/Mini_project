@@ -21,21 +21,26 @@ class _BookingScreenState extends State<BookingScreen> {
   late DateTime _selectedTime;
   String _enteredVehicleType = ''; // Add vehicle type variable
   bool _isTwoWheeler = false;
+  int? _selectedIndex;
+bool? _isFourWheeler;
 
   @override
-  void initState() {
-    super.initState();
-    _vehicleNumberController = TextEditingController();
-    // Initialize the default time to the nearest half-hour interval from the current time
-    final now = DateTime.now();
-    int nextHour = now.hour;
-    int nextMinute = now.minute < 30 ? 30 : 0;
-    if (nextMinute == 0) {
-      nextHour++;
-    }
-    _selectedTime =
-        DateTime(now.year, now.month, now.day, nextHour, nextMinute);
+void initState() {
+  super.initState();
+  _vehicleNumberController = TextEditingController();
+  // Initialize the default time to the nearest half-hour interval from the current time
+  final now = DateTime.now();
+  int nextHour = now.hour;
+  int nextMinute = now.minute < 30 ? 30 : 0;
+  if (nextMinute == 0) {
+    nextHour++;
   }
+  _selectedTime =
+      DateTime(now.year, now.month, now.day, nextHour, nextMinute);
+
+  // Set initial values for vehicle type
+   _enteredVehicleType = '';
+}
 
   @override
   void dispose() {
@@ -55,140 +60,37 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  void _selectTime(BuildContext context) {
-    final List<Widget> items = [];
-
-    final now = DateTime.now();
-    DateTime currentTime = now
-        .subtract(Duration(minutes: now.minute % 30))
-        .add(Duration(minutes: 30));
-
-    DateTime threeHoursLater = now.add(Duration(hours: 3));
-
-    // Generate time slots at 30-minute intervals from now to 3 hours later
-    while (currentTime.isBefore(threeHoursLater)) {
-      final formattedTime = DateFormat('h:mm a').format(currentTime);
-      items.add(
-        _buildTimeSlotWidget(formattedTime, currentTime),
-      );
-      currentTime = currentTime.add(Duration(minutes: 30));
-    }
-
-    // Show time selection
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.access_time),
-                title: Text(
-                  'Select Parking Time',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Column(
-                children: items,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTimeSlotWidget(String formattedTime, DateTime currentTime) {
-    return ListTile(
-      leading: Icon(Icons.access_time),
-      title: Text(
+ Widget _buildTimeSlotWidget(String formattedTime, int index) {
+  bool isSelected = _selectedIndex == index;
+  return GestureDetector(
+    onTap: () {
+      setState(() {
+        _selectedIndex = isSelected ? null : index;
+        _handleTimeSelection(index);
+      });
+    },
+    child: Container(
+      margin: EdgeInsets.symmetric(horizontal: 8.0),
+      padding: EdgeInsets.all(13.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8.0),
+        color: isSelected ? Color.fromARGB(255, 6, 87, 153) : Colors.white,
+      ),
+      child: Text(
         formattedTime,
-        style: TextStyle(fontSize: 18),
+        style: TextStyle(fontSize: 18, color: isSelected ? Colors.white : Colors.black),
       ),
-      onTap: () {
-        _handleTimeSelection(currentTime);
-      },
-    );
+    ),
+  );
+}
+
+  void _handleTimeSelection(int index) {
+    final now = DateTime.now();
+    DateTime currentTime = now.subtract(Duration(minutes: now.minute % 30)).add(Duration(minutes: 30));
+    _selectedTime = currentTime.add(Duration(minutes: 30 * index));
   }
 
-  void _handleTimeSelection(DateTime selectedTime) {
-    setState(() {
-      _selectedTime = selectedTime; // Update _selectedTime with the tapped time
-    });
-    Navigator.of(context).pop(selectedTime); // Pass tapped time back
-  }
-
-  void _selectVehicleType(BuildContext context) {
-    final List<Widget> items = [];
-
-    items.add(ListTile(
-      leading: Icon(Icons.directions_car),
-      title: Text(
-        'Four Wheeler',
-        style: TextStyle(fontSize: 18),
-      ),
-      onTap: () {
-        setState(() {
-          _isTwoWheeler = false;
-          _enteredVehicleType =
-              'Four Wheeler'; // Update the chosen vehicle type
-        });
-        Navigator.of(context).pop();
-      },
-    ));
-
-    items.add(ListTile(
-      leading: Icon(Icons.motorcycle),
-      title: Text(
-        'Two Wheeler',
-        style: TextStyle(fontSize: 18),
-      ),
-      onTap: () {
-        setState(() {
-          _isTwoWheeler = true;
-          _enteredVehicleType = 'Two Wheeler'; // Update the chosen vehicle type
-        });
-        Navigator.of(context).pop();
-      },
-    ));
-
-    // Show vehicle type selection
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.directions_car),
-                title: Text(
-                  'Select Vehicle Type',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Column(
-                children: items,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   void _bookParking() {
     _addVehicle();
@@ -201,15 +103,52 @@ class _BookingScreenState extends State<BookingScreen> {
         _enteredVehicleType.isNotEmpty) {
       // Check if vehicle type is selected
       // Proceed with booking
-      _confirmBooking();
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Confirm Booking'),
+            content: const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Delay of more than 30 minutes may lead to cancellation of reservation.',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the dialog
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the dialog
+                  _confirmBooking(); // Proceed with booking
+                },
+                child: Text('Book Now'),
+              ),
+            ],
+          );
+        },
+      );
     } else {
       // Show error message if any field is empty
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Text('Error'),
-          content: Text(
-              'Please enter a vehicle number, select a time, and choose a vehicle type.'),
+          content: const Text(
+              'Please enter a VEHCILE NUMBER , Choose a VEHICLE TYPE and select ENTRY TIME!!!.'),
+              
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -260,89 +199,121 @@ class _BookingScreenState extends State<BookingScreen> {
       appBar: AppBar(
         title: Text('Book Parking'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _vehicleNumberController,
-              decoration: InputDecoration(
-                labelText: 'Enter Vehicle Number',
-              ),
-            ),
-            SizedBox(height: 16),
-            // ElevatedButton(
-            //   onPressed: _addVehicle,
-            //   child: Text(
-            //     'Add Vehicle',
-            //     style: TextStyle(fontSize: 20),
-            //   ),
-            // ),
-            SizedBox(height: 16),
-            InkWell(
-              onTap: () => _selectTime(context),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.access_time),
-                    title: Text(
-                      'Parking Time:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      formattedTime,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 8),
-            InkWell(
-              onTap: () => _selectVehicleType(context),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: Icon(_isTwoWheeler
-                        ? Icons.motorcycle
-                        : Icons.directions_car),
-                    title: Text(
-                      'Vehicle Type:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      _enteredVehicleType.isNotEmpty
-                          ? _enteredVehicleType
-                          : 'Select Vehicle Type', // Display selected vehicle type
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Warning: Delay of more than 30 minutes may lead to cancellation of reservation.',
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _bookParking,
-              child: Text(
-                'Book Now',
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 5),
+              const Text(
+                'Vehicle Number:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              SizedBox(height: 8),
+              TextField(
+                controller: _vehicleNumberController,
+                decoration: const InputDecoration(
+                  labelText: "Enter Vehicle number",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Vehicle Type:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 2),
+              Text('Select Vehicle Type'),
+             Row(
+  children: [
+    Checkbox(
+      value: _isFourWheeler == true,
+      onChanged: (value) {
+        setState(() {
+          if (_isFourWheeler == true) {
+            _isFourWheeler = null; // Deselect if already selected
+            _enteredVehicleType = '';
+          } else {
+            _isFourWheeler = true; // Select if not already selected
+            _enteredVehicleType = 'Four Wheeler';
+          }
+        });
+      },
+    ),
+    Text('Four Wheeler', style: TextStyle(fontSize: 18)),
+  ],
+),
+Row(
+  children: [
+    Checkbox(
+      value: _isFourWheeler == false,
+      onChanged: (value) {
+        setState(() {
+          if (_isFourWheeler == false) {
+            _isFourWheeler = null; // Deselect if already selected
+            _enteredVehicleType = '';
+          } else {
+            _isFourWheeler = false; // Select if not already selected
+            _enteredVehicleType = 'Two Wheeler';
+          }
+        });
+      },
+    ),
+    Text('Two Wheeler', style: TextStyle(fontSize: 18)),
+  ],
+),
+
+
+
+              SizedBox(height: 16),
+              Text(
+                'Entry Time:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 2),
+              Text('Select the Entry Time'),
+              SizedBox(height: 8),
+              SizedBox(
+                height: 60,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 12, // Change this as per your requirement
+                  itemBuilder: (BuildContext context, int index) {
+                    final now = DateTime.now();
+                    DateTime currentTime =
+                        now.subtract(Duration(minutes: now.minute % 15)).add(Duration(minutes: 15));
+                    DateTime time = currentTime.add(Duration(minutes: 15 * index));
+                    final formattedTime = DateFormat('h:mm a').format(time);
+                    return _buildTimeSlotWidget(formattedTime, index);
+                  },
+                ),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _bookParking,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xff567DF4),
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                ),
+                child: const Text(
+                  'Book Now',
+                  style: TextStyle(
+                    fontFamily: 'Readex Pro',
+                    color: Colors.white,
+                    fontSize: 17,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

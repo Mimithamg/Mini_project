@@ -272,8 +272,26 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                     ElevatedButton(
                       onPressed: () {
                         _launchMaps(area.latitude, area.longitude);
-                      },
-                      child: Text('Directions'),
+                      }, style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white, // Background color set to white
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
+                          children: [
+                            Icon(
+                              Icons.directions,
+                              color: Colors.blue, // Icon color set to blue
+                            ),
+                            SizedBox(width: 8), // Add some space between icon and text
+                            Text(
+                              'Directions',
+                              style: TextStyle(
+                                color: Colors.blue, // Text color set to blue
+                              ),
+                            ),
+                          ],
+                        ),
+                     
                     ),
                     SizedBox(width: 16),
                     ElevatedButton(
@@ -286,7 +304,26 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                           ),
                         );
                       },
-                      child: Text('More Details'),
+                       style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white, // Background color set to white
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
+                          children: [
+                            Icon(
+                              Icons.details,
+                              color: Colors.blue, // Icon color set to blue
+                            ),
+                            SizedBox(width: 8), // Add some space between icon and text
+                            Text(
+                              'More Details',
+                              style: TextStyle(
+                                color: Colors.blue, // Text color set to blue
+                              ),
+                            ),
+                          ],
+                        ),
+                      
                     ),
                   ],
                 ),
@@ -298,7 +335,23 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: Text('Close'),
+                       style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white, // Background color set to white
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
+                          children: [
+                            
+                            SizedBox(width: 8), // Add some space between icon and text
+                            Text(
+                              'Close',
+                              style: TextStyle(
+                                color: Colors.blue, // Text color set to blue
+                              ),
+                            ),
+                          ],
+                        ),
+                     
                     ),
                   ],
                 ),
@@ -459,22 +512,55 @@ void initState() {
                           _animateToLocation(selectedParkingArea);
                         }
 
-                        },
-                        child: const Text('Nearby Spaces'),
+                        },child: const Row(
+                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
+                          children: [
+                            Icon(
+                              Icons.near_me_sharp,
+                              color: Colors.blue, // Icon color set to blue
+                            ),
+                            SizedBox(width: 8), // Add some space between icon and text
+                            Text(
+                              'Nearby Parking',
+                              style: TextStyle(
+                                color: Colors.blue, // Text color set to blue
+                              ),
+                            ),
+                          ],
+                        ),
+                        
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                                final selectedParkingArea  = await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) =>SearchPage ()),
-                         );
-                         if (selectedParkingArea != null) {
-                          _animateToLocation(selectedParkingArea);
-                        }
-
+                          final selectedParkingArea = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => SearchPage()),
+                          );
+                          if (selectedParkingArea != null) {
+                            _animateToLocation(selectedParkingArea);
+                          }
                         },
-                        child: Text('Search'),
-                      ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white, // Background color set to white
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
+                          children: [
+                            Icon(
+                              Icons.search,
+                              color: Colors.blue, // Icon color set to blue
+                            ),
+                            SizedBox(width: 8), // Add some space between icon and text
+                            Text(
+                              '  Search  ',
+                              style: TextStyle(
+                                color: Colors.blue, // Text color set to blue
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+
                     ],
                   ),
                 ),

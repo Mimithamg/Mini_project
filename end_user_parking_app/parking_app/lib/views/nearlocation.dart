@@ -392,8 +392,8 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
                                 ),
                                 SizedBox(width: 8),
                                 Container(
-                                  width: 40,
-                                  height: 40,
+                                  width: 55,
+                                  height: 55,
                                   decoration: BoxDecoration(
                                     color: Colors.blue,
                                     shape: BoxShape.circle,
@@ -419,7 +419,26 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
                                     onPressed: () {
                                       Navigator.pop(context, area);
                                     },
-                                    child: Text('Show on Map'),
+                                     style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white, // Background color set to white
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
+                          children: [
+                            Icon(
+                              Icons.map_outlined,
+                              color: Colors.blue, // Icon color set to blue
+                            ),
+                            SizedBox(width: 8), // Add some space between icon and text
+                            Text(
+                              'Show On Map',
+                              style: TextStyle(
+                                color: Colors.blue, // Text color set to blue
+                              ),
+                            ),
+                          ],
+                        ),
+                                   
                                   ),
                                 ],
                               ),]
