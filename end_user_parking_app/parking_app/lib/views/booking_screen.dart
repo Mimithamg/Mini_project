@@ -7,9 +7,7 @@ class BookingScreen extends StatefulWidget {
   final int spaceId;
   final String spaceName;
 
-  const BookingScreen(
-      {Key? key, required this.spaceId, required this.spaceName})
-      : super(key: key);
+  const BookingScreen({Key? key, required this.spaceId, required this.spaceName}) : super(key: key);
 
   @override
   _BookingScreenState createState() => _BookingScreenState();
@@ -22,25 +20,28 @@ class _BookingScreenState extends State<BookingScreen> {
   String _enteredVehicleType = ''; // Add vehicle type variable
   bool _isTwoWheeler = false;
   int? _selectedIndex;
-bool? _isFourWheeler;
+  bool? _isFourWheeler;
+  double? _feePerHourFourWheelers;
+  double? _feePerHourTwoWheelers;
+
 
   @override
-void initState() {
-  super.initState();
-  _vehicleNumberController = TextEditingController();
-  // Initialize the default time to the nearest half-hour interval from the current time
-  final now = DateTime.now();
-  int nextHour = now.hour;
-  int nextMinute = now.minute < 30 ? 30 : 0;
-  if (nextMinute == 0) {
-    nextHour++;
+  void initState() {
+    super.initState();
+    _vehicleNumberController = TextEditingController();
+    _fetchParkingFees();
+    // Initialize the default time to the nearest half-hour interval from the current time
+    final now = DateTime.now();
+    int nextHour = now.hour;
+    int nextMinute = now.minute < 30 ? 30 : 0;
+    if (nextMinute == 0) {
+      nextHour++;
+    }
+    _selectedTime = DateTime(now.year, now.month, now.day, nextHour, nextMinute);
+    // Set initial values for vehicle type and fees
+    _enteredVehicleType = '';
+     // Fetch parking fees
   }
-  _selectedTime =
-      DateTime(now.year, now.month, now.day, nextHour, nextMinute);
-
-  // Set initial values for vehicle type
-   _enteredVehicleType = '';
-}
 
   @override
   void dispose() {
@@ -60,37 +61,52 @@ void initState() {
     }
   }
 
- Widget _buildTimeSlotWidget(String formattedTime, int index) {
-  bool isSelected = _selectedIndex == index;
-  return GestureDetector(
-    onTap: () {
+  void _fetchParkingFees() async {
+  try {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('PARKING SPACES').doc(widget.spaceId.toString()).get();
+    if (snapshot.exists) {
       setState(() {
-        _selectedIndex = isSelected ? null : index;
-        _handleTimeSelection(index);
+        _feePerHourFourWheelers = snapshot['fee_ph_four']?.toDouble();
+        _feePerHourTwoWheelers = snapshot['fee_ph_two']?.toDouble();
+       // Set feesLoaded to true after fetching fees
       });
-    },
-    child: Container(
-      margin: EdgeInsets.symmetric(horizontal: 8.0),
-      padding: EdgeInsets.all(13.0),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(8.0),
-        color: isSelected ? Color.fromARGB(255, 6, 87, 153) : Colors.white,
-      ),
-      child: Text(
-        formattedTime,
-        style: TextStyle(fontSize: 18, color: isSelected ? Colors.white : Colors.black),
-      ),
-    ),
-  );
+    }
+  } catch (e) {
+    print('Error fetching parking fees: $e');
+  }
 }
+
+
+  Widget _buildTimeSlotWidget(String formattedTime, int index) {
+    bool isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedIndex = isSelected ? null : index;
+          _handleTimeSelection(index);
+        });
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 8.0),
+        padding: EdgeInsets.all(13.0),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(8.0),
+          color: isSelected ? Color.fromARGB(255, 6, 87, 153) : Colors.white,
+        ),
+        child: Text(
+          formattedTime,
+          style: TextStyle(fontSize: 18, color: isSelected ? Colors.white : Colors.black),
+        ),
+      ),
+    );
+  }
 
   void _handleTimeSelection(int index) {
     final now = DateTime.now();
     DateTime currentTime = now.subtract(Duration(minutes: now.minute % 30)).add(Duration(minutes: 30));
     _selectedTime = currentTime.add(Duration(minutes: 30 * index));
   }
-
 
   void _bookParking() {
     _addVehicle();
@@ -147,8 +163,8 @@ void initState() {
         builder: (context) => AlertDialog(
           title: Text('Error'),
           content: const Text(
-              'Please enter a VEHCILE NUMBER , Choose a VEHICLE TYPE and select ENTRY TIME!!!.'),
-              
+            'Please enter a VEHCILE NUMBER , Choose a VEHICLE TYPE and select ENTRY TIME!!!.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -191,9 +207,7 @@ void initState() {
   @override
   Widget build(BuildContext context) {
     // ignore: unnecessary_null_comparison
-    String formattedTime = _selectedTime != null
-        ? DateFormat('h:mm a').format(_selectedTime)
-        : 'Select Time'; // Format the selected time for display
+    String formattedTime = _selectedTime != null ? DateFormat('h:mm a').format(_selectedTime) : 'Select Time'; // Format the selected time for display
 
     return Scaffold(
       appBar: AppBar(
@@ -227,47 +241,51 @@ void initState() {
               ),
               SizedBox(height: 2),
               Text('Select Vehicle Type'),
-             Row(
-  children: [
-    Checkbox(
-      value: _isFourWheeler == true,
-      onChanged: (value) {
-        setState(() {
-          if (_isFourWheeler == true) {
-            _isFourWheeler = null; // Deselect if already selected
-            _enteredVehicleType = '';
-          } else {
-            _isFourWheeler = true; // Select if not already selected
-            _enteredVehicleType = 'Four Wheeler';
-          }
-        });
-      },
-    ),
-    Text('Four Wheeler', style: TextStyle(fontSize: 18)),
-  ],
-),
-Row(
-  children: [
-    Checkbox(
-      value: _isFourWheeler == false,
-      onChanged: (value) {
-        setState(() {
-          if (_isFourWheeler == false) {
-            _isFourWheeler = null; // Deselect if already selected
-            _enteredVehicleType = '';
-          } else {
-            _isFourWheeler = false; // Select if not already selected
-            _enteredVehicleType = 'Two Wheeler';
-          }
-        });
-      },
-    ),
-    Text('Two Wheeler', style: TextStyle(fontSize: 18)),
-  ],
-),
-
-
-
+              Row(
+                children: [
+                  Checkbox(
+                    value: _isFourWheeler == true,
+                    onChanged: (value) {
+                      setState(() {
+                        if (_isFourWheeler == true) {
+                          _isFourWheeler = null; // Deselect if already selected
+                          _enteredVehicleType = '';
+                        } else {
+                          _isFourWheeler = true; // Select if not already selected
+                          _enteredVehicleType = 'Four Wheeler';
+                        }
+                      });
+                    },
+                  ),
+                  Text('Four Wheeler', style: TextStyle(fontSize: 18)),
+                  SizedBox(width: 8),
+                  if ( _feePerHourFourWheelers != null)
+                    Text('(${_feePerHourFourWheelers}/hour)'),
+                  
+                ],
+              ),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _isFourWheeler == false,
+                    onChanged: (value) {
+                      setState(() {
+                        if (_isFourWheeler == false) {
+                          _isFourWheeler = null; // Deselect if already selected
+                          _enteredVehicleType = '';
+                        } else {
+                          _isFourWheeler = false; // Select if not already selected
+                          _enteredVehicleType = 'Two Wheeler';
+                        }
+                      });
+                    },
+                  ),
+                  Text('Two Wheeler', style: TextStyle(fontSize: 18)),
+                  SizedBox(width: 8),
+                  if ( _feePerHourTwoWheelers != null)
+                    Text('(${_feePerHourTwoWheelers}/hour)'),
+                ],
+              ),
               SizedBox(height: 16),
               Text(
                 'Entry Time:',
@@ -312,6 +330,7 @@ Row(
                   ),
                 ),
               ),
+              
             ],
           ),
         ),

@@ -1,10 +1,10 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:path/path.dart' as path;
 
-class DetailsReservation extends StatefulWidget {
+
+
+class DetailsReservation extends StatelessWidget {
   final String vehicleNumber;
   final String bookingTime;
   final String vehicleType;
@@ -19,51 +19,15 @@ class DetailsReservation extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DetailsReservationState createState() => _DetailsReservationState();
-}
-
-class _DetailsReservationState extends State<DetailsReservation> {
-  late Future<void> _qrCodeGenerationFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _qrCodeGenerationFuture = _generateQRCode();
-  }
-
-  Future<void> _generateQRCode() async {
-    // Get the current directory where the script is running
-    String currentDirectory = Directory.current.path;
-
-    // Convert the relative path to an absolute path
-    String generatedFilesDirectory = path.join(currentDirectory, 'generated_files');
-    String qrCodeFilePath = path.join(generatedFilesDirectory, 'qr_code.png');
-
-    // Execute Python script
-    await Process.run('python', [
-      'python_scripts/generate_qr_code.py',
-      widget.vehicleNumber,
-      widget.bookingTime,
-      widget.vehicleType,
-      widget.parkingSpaceName,
-      qrCodeFilePath, // Use the absolute path
-    ]).then((ProcessResult result) {
-      print(result.stdout);
-      print(result.stderr);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
-          children: [
-          
-            Expanded(
-              child: Text('Reservation Details'),
-            ),
-          ],
+        title: Text('Reservation Details'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
       ),
       body: SingleChildScrollView(
@@ -83,24 +47,7 @@ class _DetailsReservationState extends State<DetailsReservation> {
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      'Kindly present this QR code on the security phone upon your arrival at the parking area.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    FutureBuilder<void>(
-                      future: _qrCodeGenerationFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          return Image.file(File(path.join(Directory.current.path, 'generated_files', 'qr_code.png')));
-                        } else {
-                          return CircularProgressIndicator();
-                        }
-                      },
-                    ),
+                    _buildQRCodeSection(),
                     SizedBox(height: 16),
                     _buildReservationDetails(),
                     SizedBox(height: 16),
@@ -117,6 +64,30 @@ class _DetailsReservationState extends State<DetailsReservation> {
     );
   }
 
+  Widget _buildQRCodeSection() {
+    // Generate QR code data
+    String qrData = '$vehicleNumber\n$bookingTime\n$vehicleType\n$parkingSpaceName';
+
+    return Column(
+      children: [
+        const Text(
+          'Kindly present this QR code on the security phone upon your arrival at the parking area.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+          ),
+        ),
+        SizedBox(height: 8),
+        // Display QR code with generated data
+        SizedBox(
+          width: 150, // Adjust width as needed
+          height: 150, // Adjust height as needed
+          child: PrettyQrView.data(data: qrData),
+        ),
+      ],
+    );
+  }
+
   Widget _buildReservationDetails() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,10 +101,10 @@ class _DetailsReservationState extends State<DetailsReservation> {
           ),
         ),
         SizedBox(height: 8),
-        _buildDetailRow('Vehicle Number', widget.vehicleNumber),
-        _buildDetailRow('Booking Time', widget.bookingTime),
-        _buildDetailRow('Vehicle Type', widget.vehicleType),
-        _buildDetailRow('Parking Space Name', widget.parkingSpaceName),
+        _buildDetailRow('Vehicle Number', vehicleNumber),
+        _buildDetailRow('Booking Time', bookingTime),
+        _buildDetailRow('Vehicle Type', vehicleType),
+        _buildDetailRow('Parking Space Name', parkingSpaceName),
       ],
     );
   }
@@ -174,7 +145,7 @@ class _DetailsReservationState extends State<DetailsReservation> {
     return ElevatedButton(
       onPressed: () async {
         // Navigate to Google Maps for directions
-        String googleMapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=${widget.parkingSpaceName}';
+        String googleMapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=${parkingSpaceName}';
         if (await canLaunch(googleMapsUrl)) {
           await launch(googleMapsUrl);
         } else {
@@ -187,7 +158,7 @@ class _DetailsReservationState extends State<DetailsReservation> {
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xff567DF4),
-        padding: EdgeInsets.symmetric(vertical: 7,horizontal: 140),
+        padding: EdgeInsets.symmetric(vertical: 7, horizontal: 140),
         elevation: 3,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),

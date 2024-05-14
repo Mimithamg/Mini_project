@@ -5,6 +5,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:parking_app/views/booking_screen.dart';
 import 'package:parking_app/views/nearlocation.dart';
 import 'package:parking_app/views/parking_area.dart';
 import 'package:parking_app/views/parkingdetailsscreen.dart';
@@ -18,7 +19,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late GoogleMapController mapController;
-  late LatLng _initialPosition;
+  late LatLng _initialPosition =  LatLng(10.525423, 76.213470);
+
 
   final String _mapStyleString = '''
 [
@@ -161,7 +163,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16),
+                
                 Row(
                   children: [
                     Text('Rating: '),
@@ -188,7 +190,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
+                
                 Row(
                   children: [
                     Column(
@@ -207,7 +209,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                           ),
                         ),
                         Text(
-                          'Fee/hr: ₹${area.feePerHourFourWheelers}',
+                          '₹${area.feePerHourFourWheelers}/hr',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
@@ -215,7 +217,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                         ),
                       ],
                     ),
-                    SizedBox(width: 16),
+                    SizedBox(width: 50),
                     Column(
                       children: [
                         Icon(
@@ -232,7 +234,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                           ),
                         ),
                         Text(
-                          'Fee/hr: ₹${area.feePerHourTwoWheelers}',
+                          '₹${area.feePerHourTwoWheelers}/hr',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
@@ -242,7 +244,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 3),
                 Text(
                   '${area.address}',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -265,7 +267,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 2),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -327,9 +329,45 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 2),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookingScreen(
+                                    spaceId: area.space_id,
+                                    spaceName: area.name,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xff567DF4),
+                              padding: EdgeInsets.symmetric(horizontal: 50),
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                            ),
+                            child: Text(
+                              'Book parking',
+                              style: TextStyle(
+                                fontFamily: 'Readex Pro',
+                                color: Colors.white,
+                                fontSize: 16,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                          ),
+                  ],
+                ),
+                SizedBox(height: 2),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
                       onPressed: () {
@@ -346,7 +384,7 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
                             Text(
                               'Close',
                               style: TextStyle(
-                                color: Colors.blue, // Text color set to blue
+                                color: Colors.red, // Text color set to blue
                               ),
                             ),
                           ],
@@ -376,23 +414,74 @@ void _onMarkerTapped(BuildContext context, ParkingArea area) {
 
 
 
-  Future<void> _getUserLocation() async {
+  Future<void> _getCurrentLocation(BuildContext context) async {
     Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high); // Fetch the current position
+        desiredAccuracy: LocationAccuracy.high);
     setState(() {
       _initialPosition = LatLng(position.latitude, position.longitude);
     });
   }
 
+
 @override
 void initState() {
   super.initState();
-   _getUserLocation();
-   // Fetch user's current location when the widget initializes
-  setState(() {
-    _initialPosition = LatLng(10.525423, 76.213470); // Thrissur's coordinates
+  Future.delayed(Duration.zero, () {
+    _showLocationPermissionDialog(context);
   });
 }
+
+
+
+ void _showLocationPermissionDialog(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Location Permission'),
+          content: Text('Do you want to turn on location services?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                LocationPermission permission =
+                    await Geolocator.requestPermission();
+                if (permission == LocationPermission.always ||
+                    permission == LocationPermission.whileInUse) {
+                  bool serviceEnabled =
+                      await Geolocator.isLocationServiceEnabled();
+                  if (!serviceEnabled) {
+                    bool serviceTurnedOn =
+                        await Geolocator.openLocationSettings();
+                    if (serviceTurnedOn) {
+                      _getCurrentLocation(context);
+                    } else {
+                      print('Location service was not turned on.');
+                    }
+                  } else {
+                    _getCurrentLocation(context);
+                  }
+                } else {
+                  print('Location permission was not granted.');
+                }
+              },
+              child: Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _initialPosition = LatLng(10.525423, 76.213470);
+                });
+              },
+              child: Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
  void _animateToLocation(ParkingArea area) {
     // Animate the map to the specified location
     mapController.animateCamera(

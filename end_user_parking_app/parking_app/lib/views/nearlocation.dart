@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:parking_app/views/booking_screen.dart';
 import 'package:parking_app/views/parking_area.dart';
 import 'package:parking_app/views/parkingdetailsscreen.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -440,6 +441,37 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
                         ),
                                    
                                   ),
+                                   SizedBox(width:25),
+                                  ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookingScreen(
+                                    spaceId: area.space_id,
+                                    spaceName: area.name,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xff567DF4),
+                              padding: EdgeInsets.symmetric(horizontal: 24),
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                            ),
+                            child: Text(
+                              'Book parking',
+                              style: TextStyle(
+                                fontFamily: 'Readex Pro',
+                                color: Colors.white,
+                                fontSize: 16,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                          ),
                                 ],
                               ),]
                           ),

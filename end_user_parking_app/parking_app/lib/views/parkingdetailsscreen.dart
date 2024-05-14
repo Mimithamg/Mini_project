@@ -407,15 +407,22 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                                 borderRadius: BorderRadius.circular(22),
                               ),
                             ),
-                            child: Text(
-                              'directions',
+                            child:const Row(
+                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
+                          children: [
+                            Icon(
+                              Icons.directions,
+                              color: Colors.white, // Icon color set to blue
+                            ),
+                            SizedBox(width: 8), // Add some space between icon and text
+                            Text(
+                              'Directions',
                               style: TextStyle(
-                                fontFamily: 'Readex Pro',
-                                color: Colors.white,
-                                fontSize: 16,
-                                letterSpacing: 0,
+                                color: Colors.white, // Text color set to blue
                               ),
                             ),
+                          ],
+                        ),
                           ),
                         ),
                       ],

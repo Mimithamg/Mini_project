@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:parking_app/views/booking_screen.dart';
 import 'package:parking_app/views/parking_area.dart';
 import 'package:parking_app/views/parkingdetailsscreen.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -370,30 +371,61 @@ Widget build(BuildContext context) {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context, area);
-                                    },
-                                     style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white, // Background color set to white
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
-                          children: [
-                            Icon(
-                              Icons.map_outlined,
-                              color: Colors.blue, // Icon color set to blue
-                            ),
-                            SizedBox(width: 8), // Add some space between icon and text
-                            Text(
-                              'Show On Map',
-                              style: TextStyle(
-                                color: Colors.blue, // Text color set to blue
-                              ),
-                            ),
-                          ],
-                        ),
+                                                onPressed: () {
+                                                  Navigator.pop(context, area);
+                                                },
+                                                    style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white, // Background color set to white
+                                          ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min, // To make the button only as wide as its children
+                                          children: [
+                                            Icon(
+                                              Icons.map_outlined,
+                                              color: Colors.blue, // Icon color set to blue
+                                            ),
+                                            SizedBox(width: 8), // Add some space between icon and text
+                                            Text(
+                                              'Show On Map',
+                                              style: TextStyle(
+                                                color: Colors.blue, // Text color set to blue
+                                              ),
+                                            ),
+                                          ],
+                                    ),
                                    
                                   ),
+                                  SizedBox(width:25),
+                                  ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookingScreen(
+                                    spaceId: area.space_id,
+                                    spaceName: area.name,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xff567DF4),
+                              padding: EdgeInsets.symmetric(horizontal: 24),
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                            ),
+                            child: Text(
+                              'Book parking',
+                              style: TextStyle(
+                                fontFamily: 'Readex Pro',
+                                color: Colors.white,
+                                fontSize: 16,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                          ),
                                 ],
                               ),
                             ],

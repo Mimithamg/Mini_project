@@ -2,7 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:parking_app/repositary/authentication_repositary/signup_email_password_failure.dart';
 import 'package:parking_app/views/home_page.dart';
-import 'package:parking_app/views/login_page.dart';
+import 'package:parking_app/views/loginscreen.dart';
+
 
 class AuthenticationRepository extends GetxController {
   static AuthenticationRepository get instance => Get.find();
@@ -20,7 +21,7 @@ class AuthenticationRepository extends GetxController {
 
   _setInitialScreen(User? user) {
     user == null
-        ? Get.offAll(() => LoginPage())
+        ? Get.offAll(() => LoginScreen())
         : _navigateToHome(); // Navigate to home page after login
   }
 
