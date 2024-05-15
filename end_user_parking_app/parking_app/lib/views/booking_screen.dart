@@ -7,7 +7,7 @@ class BookingScreen extends StatefulWidget {
   final int spaceId;
   final String spaceName;
 
-  const BookingScreen({Key? key, required this.spaceId, required this.spaceName}) : super(key: key);
+  const BookingScreen({super.key, required this.spaceId, required this.spaceName});
 
   @override
   _BookingScreenState createState() => _BookingScreenState();
@@ -61,20 +61,31 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  void _fetchParkingFees() async {
+ void _fetchParkingFees() async {
   try {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('PARKING SPACES').doc(widget.spaceId.toString()).get();
-    if (snapshot.exists) {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('PARKING SPACES')
+        .where('space_id', isEqualTo: widget.spaceId) // Query based on space_id
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
       setState(() {
-        _feePerHourFourWheelers = snapshot['fee_ph_four']?.toDouble();
-        _feePerHourTwoWheelers = snapshot['fee_ph_two']?.toDouble();
-       // Set feesLoaded to true after fetching fees
+        _feePerHourFourWheelers = snapshot.docs[0]['fee_ph_four']?.toDouble() ?? 0.0;
+        _feePerHourTwoWheelers = snapshot.docs[0]['fee_ph_two']?.toDouble() ?? 0.0;
+        // Set feesLoaded to true after fetching fees
       });
+    } else {
+      // Handle case where document doesn't exist
+      print('Document does not exist');
     }
   } catch (e) {
+    // Handle errors more gracefully
     print('Error fetching parking fees: $e');
+    // Show error message to the user
+    // showDialog(...);
   }
 }
+
+
 
 
   Widget _buildTimeSlotWidget(String formattedTime, int index) {
@@ -257,10 +268,13 @@ class _BookingScreenState extends State<BookingScreen> {
                       });
                     },
                   ),
-                  Text('Four Wheeler', style: TextStyle(fontSize: 18)),
-                  SizedBox(width: 8),
+                  const Text('Four Wheeler', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 140),
                   if ( _feePerHourFourWheelers != null)
-                    Text('(${_feePerHourFourWheelers}/hour)'),
+                    Text('(₹$_feePerHourFourWheelers/hr)',style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            
+                          ),),
                   
                 ],
               ),
@@ -281,9 +295,12 @@ class _BookingScreenState extends State<BookingScreen> {
                     },
                   ),
                   Text('Two Wheeler', style: TextStyle(fontSize: 18)),
-                  SizedBox(width: 8),
+                  SizedBox(width: 140),
                   if ( _feePerHourTwoWheelers != null)
-                    Text('(${_feePerHourTwoWheelers}/hour)'),
+                    Text('(₹${_feePerHourTwoWheelers}/hr)',style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            
+                          ),),
                 ],
               ),
               SizedBox(height: 16),

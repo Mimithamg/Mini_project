@@ -11,6 +11,7 @@ class ParkingArea {
   final double latitude;
   final double longitude;
   final int space_id;
+  final String imageUrl; // Add imageUrl field
 
   ParkingArea({
     required this.name,
@@ -24,7 +25,7 @@ class ParkingArea {
     required this.isOpen,
     required this.latitude,
     required this.longitude,
-    required this.space_id
-
+    required this.space_id,
+    required this.imageUrl, // Add this line to initialize imageUrl
   });
 }

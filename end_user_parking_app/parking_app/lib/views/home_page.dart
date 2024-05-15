@@ -74,6 +74,7 @@ class _HomePageState extends State<HomePage> {
       latitude: latitude,
       longitude: longitude,
       space_id:doc['space_id'],
+      imageUrl: doc['image'],
     );
 
     return Marker(
@@ -441,7 +442,7 @@ void initState() {
           title: Text('Location Permission'),
           content: Text('Do you want to turn on location services?'),
           actions: <Widget>[
-            TextButton(
+            ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 LocationPermission permission =
@@ -465,7 +466,23 @@ void initState() {
                   print('Location permission was not granted.');
                 }
               },
-              child: Text('Yes'),
+                      style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 7, horizontal: 5),
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(22),
+                ),
+              ),
+              child: const Text(
+                'Yes',
+                style: TextStyle(
+                  fontFamily: 'Readex Pro',
+                  color: Colors.blue,
+                  fontSize: 17,
+                  letterSpacing: 0,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {

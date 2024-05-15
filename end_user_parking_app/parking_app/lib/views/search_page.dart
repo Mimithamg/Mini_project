@@ -46,6 +46,7 @@ class _SearchPageState extends State<SearchPage> {
         latitude: doc['location'].latitude,
         longitude: doc['location'].longitude,
         space_id:doc['space_id'],
+        imageUrl: doc['image'],
       ));
     });
 
@@ -197,8 +198,8 @@ Widget build(BuildContext context) {
                                 children: [
                                   CircleAvatar(
                                     radius: 20,
-                                    backgroundImage:
-                                        AssetImage('assets/parking.png'),
+                                    backgroundImage: NetworkImage(area.imageUrl),
+
                                   ),
                                   SizedBox(width: 20),
                                   Expanded(
@@ -416,7 +417,7 @@ Widget build(BuildContext context) {
                                 borderRadius: BorderRadius.circular(22),
                               ),
                             ),
-                            child: Text(
+                            child: const Text(
                               'Book parking',
                               style: TextStyle(
                                 fontFamily: 'Readex Pro',

@@ -1,359 +1,199 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:parking_app/views/booking_screen.dart';
 import 'package:parking_app/views/parking_area.dart';
-import 'package:parking_app/views/search_page.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:geolocator/geolocator.dart';
 
 class ParkingDetailsScreen extends StatefulWidget {
   final ParkingArea area;
-  const ParkingDetailsScreen(
-      {super.key, required this.area, required Map<String, dynamic> data});
+  const ParkingDetailsScreen({Key? key, required this.area, required Map<String, dynamic> data})
+      : super(key: key);
 
   @override
   State<ParkingDetailsScreen> createState() => _ParkingDetailsScreenState();
 }
 
 class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
-  void _navigateToLocation(double latitude, double longitude) async {
-    String googleMapsUrl =
-        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
-    if (await canLaunch(googleMapsUrl)) {
-      await launch(googleMapsUrl);
-    } else {
-      print('Could not launch $googleMapsUrl');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    TimeOfDay _parseTimeString(String timeString) {
-      bool isPM = timeString.toLowerCase().contains('pm');
-      List<String> parts =
-          timeString.replaceAll(RegExp(r'[^0-9]'), '').split('');
-      int hour = int.parse(parts[0]);
-      if (isPM && hour != 12) {
-        hour += 12;
-      } else if (!isPM && hour == 12) {
-        hour = 0;
-      }
-      int minute = parts.length > 1 ? int.parse(parts[1]) : 0;
-      return TimeOfDay(hour: hour, minute: minute);
+    // Fetch the current time
+    final now = DateTime.now();
+
+    // Check if the current time is within the working time of the parking spot
+    bool isOpen = true; // Assume open by default
+    if (widget.area.workingTime != null) {
+      // Parse the working time from the database (assuming it's in a suitable format)
+      // Compare with the current time to determine if the parking spot is open
+      isOpen = _checkOpenStatus(widget.area.workingTime);
     }
-
-    // Parse the workingTime string into TimeOfDay objects
-    List<String> workingHours = widget.area.workingTime.split(' to ');
-    String openingTimeString = workingHours[0].trim(); // "9 am"
-    String closingTimeString = workingHours[1].trim(); // "7 pm"
-
-    // Parse opening time
-    TimeOfDay openingTime = _parseTimeString(openingTimeString);
-
-    // Parse closing time
-    TimeOfDay closingTime = _parseTimeString(closingTimeString);
-
-    // Get the current time
-    DateTime now = DateTime.now();
-    TimeOfDay currentTime = TimeOfDay.fromDateTime(now);
-
-    // Check if the current time is within the working hours
-    bool isOpen = currentTime.hour > openingTime.hour &&
-        currentTime.hour < closingTime.hour;
-
-    // Build the text accordingly
-    String openCloseText = isOpen
-        ? 'Open until ${closingTime.format(context)}'
-        : 'Closed. Opens at ${openingTime.format(context)}';
-
-    // Function to parse time string to TimeOfDay
-
-    Size screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.area.name),
+        title: Text('Parking Details'),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.center,
-                width: screenSize.width,
-                child: Container(
-                  width: screenSize.width,
-                  height:
-                      screenSize.height * 0.28, // Adjust the height as needed
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Display name of the parking spot in bold
+            Text(
+              widget.area.name,
+              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+            ),
+            // Display rating of the parking spot using stars
+            Row(
+              children: [
+                RatingBar.builder(
+                  initialRating: widget.area.rating,
+                  minRating: 0,
+                  direction: Axis.horizontal,
+                  allowHalfRating: true,
+                  itemCount: 5,
+                  itemSize: 16,
+                  itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                  itemBuilder: (context, _) => Icon(
+                    Icons.star,
+                    color: Colors.amber,
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.asset(
-                      'assets/parking.png',
-                      width:
-                          screenSize.width, // Image width set to screen width
-                      height: screenSize.height *
-                          0.3, // Image height set to container height
-                      fit: BoxFit.fill,
-                    ),
+                  ignoreGestures: true,
+                  onRatingUpdate: (double value) {},
+                  // Disable rating changes from UI
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '${widget.area.rating}', // Display rating as number
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+            SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  widget.area.isOpen ? 'OPEN' : 'CLOSED',
+                  style: TextStyle(
+                    color: widget.area.isOpen ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+              ],
+            ),
+            SizedBox(height: 16.0),
+            // Display photo of the parking spot with border decoration
+            Container(
+              width: double.infinity,
+              height: 200.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.0),
+                border: Border.all(
+                  color: Colors.blue, // Border color
+                  width: 2.0, // Border width
+                ),
               ),
-              SizedBox(height: 16),
-              // Generated code for this Row Widget...
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Container(
-                    width: 306,
-                    height: 81,
-                    decoration: BoxDecoration(),
-                    child: Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(8, 0, 0, 0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: List.generate(
-                              5,
-                              (index) => Icon(
-                                Icons.star,
-                                size: 16,
-                                color: index < widget.area.rating
-                                    ? Colors.amber
-                                    : Colors.grey,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            openCloseText,
-                            style: TextStyle(
-                              fontFamily: 'Readex Pro',
-                              letterSpacing: 0,
-                            ),
-                          ),
-                          Text(
-                            '${widget.area.availabilityFourWheelers > 1 ? "Available for four-wheelers" : "Available only one slot left"}',
-                            style: TextStyle(
-                              fontFamily: 'Readex Pro',
-                              letterSpacing: 0,
-                            ),
-                          ),
-                          Text(
-                            '${widget.area.availabilityTwoWheelers > 1 ? "Available for two wheelers" : "Available only one slot left"}',
-                            style: TextStyle(
-                              fontFamily: 'Readex Pro',
-                              letterSpacing: 0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      _navigateToLocation(
-                          widget.area.latitude, widget.area.longitude);
-                    },
-                    icon: Icon(
-                      Icons.directions_rounded,
-                      color: Color(0xff567DF4),
-                      size: 50,
-                    ),
-                  )
-                ],
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10.0),
+                child: Image.network(
+                  widget.area.imageUrl,
+                  width: double.infinity,
+                  height: 200.0,
+                  fit: BoxFit.cover,
+                ),
               ),
-
-              Container(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
+            ),
+            SizedBox(height: 16.0),
+            // Display location icon instead of "Address:"
+            Row(
+              children: [
+                Icon(Icons.location_on), // Location icon
+                SizedBox(width: 8),
+                    Expanded( // Wrap with Expanded to prevent overflow
+                  child: Text(
+                    widget.area.address,
+                    style: const TextStyle(
+                        fontSize: 17, 
+                  ),),
+                ),
+              ],
+            ),
+             SizedBox(height: 8.0),
+            Row(
+              children: [
+                Text('OPEN - ${widget.area.workingTime}',
+                style: const TextStyle(
+                        fontSize: 17, 
+                  )),
+              ],
+            ),
+            SizedBox(height: 15.0),
+            // Display availability of 4-wheelers and 2-wheelers
+            Row(
+              children: [
+                Column(
                   children: [
-                    Container(
-                      width: 516,
-                      height: 56,
-                      decoration: BoxDecoration(),
-                      child: Align(
-                        alignment: AlignmentDirectional(0, 0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Align(
-                              alignment: AlignmentDirectional(-10, 0),
-                              child: Icon(
-                                Icons.location_pin,
-                                color: Colors.grey,
-                                size: 34,
-                              ),
-                            ),
-                            SizedBox(
-                                width:
-                                    10), // Add some space between icon and text
-                            Expanded(
-                              // Wrap the text widget in an Expanded widget
-                              child: Text(
-                                '${widget.area.address ?? "Address not available"}',
-                                style: TextStyle(
-                                  fontFamily: 'Readex Pro',
-                                  letterSpacing: 0,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                    Icon(
+                      Icons.directions_car,
+                      color: Colors.black,
+                      size: 40,
+                    ),
+                     SizedBox(height: 4.0),
+                    Text(
+                      '₹${widget.area.feePerHourFourWheelers}/hr',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
                     ),
-                    Container(
-                      width: 516,
-                      height: 58,
-                      decoration: BoxDecoration(),
-                      child: Align(
-                        alignment: AlignmentDirectional(0, 0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Align(
-                              alignment: AlignmentDirectional(-1, 0),
-                              child: Icon(
-                                Icons.access_time_outlined,
-                                color: Colors.grey,
-                                size: 34,
-                              ),
-                            ),
-                            Align(
-                              alignment: AlignmentDirectional(0, 0),
-                              child: Text(
-                                openCloseText,
-                                style: TextStyle(
-                                  fontFamily: 'Readex Pro',
-                                  letterSpacing: 0,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            // Align(
-                            //   alignment: AlignmentDirectional(0, 0),
-                            //   child: Text(
-                            //     'closes 10 pm',
-                            //     style: TextStyle(
-                            //       fontFamily: 'Readex Pro',
-                            //       letterSpacing: 0,
-                            //     ),
-                            //   ),
-                            // ),
-                          ],
-                        ),
+                  ],
+                ),
+                SizedBox(width: 20),
+                Column(children: [
+                    Text(
+                      '${widget.area.availabilityFourWheelers}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
+                        color: widget.area.availabilityFourWheelers < 5
+                            ? Colors.red
+                            : Colors.green,
                       ),
                     ),
-                    Container(
-                      width: 516,
-                      height: 58,
-                      decoration: BoxDecoration(),
-                      child: Align(
-                        alignment: AlignmentDirectional(0, 0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Align(
-                              alignment: AlignmentDirectional(-1, 0),
-                              child: Icon(
-                                Icons.currency_rupee,
-                                color: Colors.grey,
-                                size: 34,
-                              ),
-                            ),
-                            Column(
-                              children: [
-                                Align(
-                                  alignment: AlignmentDirectional(0, 0),
-                                  child: Text(
-                                    'for four Wheelers: \$${widget.area.feePerHourFourWheelers} ,',
-                                    style: TextStyle(
-                                      fontFamily: 'Readex Pro',
-                                      letterSpacing: 0,
-                                    ),
-                                  ),
-                                ),
-                                Align(
-                                  alignment: AlignmentDirectional(0, 0),
-                                  child: Text(
-                                    'for Two Wheelers: \$${widget.area.feePerHourTwoWheelers}',
-                                    style: TextStyle(
-                                      fontFamily: 'Readex Pro',
-                                      letterSpacing: 0,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                ],),
+                SizedBox(width: 60),
+                Column(
+                  children: [
+                    Icon(
+                      Icons.motorcycle,
+                      color: Colors.black,
+                      size: 43,
+                    ),
+                    
+                    Text(
+                      '₹${widget.area.feePerHourTwoWheelers}/hr',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
                     ),
-                    Container(
-                      width: 516,
-                      height: 58,
-                      decoration: BoxDecoration(),
-                      child: Align(
-                        alignment: AlignmentDirectional(0, 0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Align(
-                              alignment: AlignmentDirectional(-1, 0),
-                              child: Icon(
-                                Icons.local_parking,
-                                color: Colors.grey,
-                                size: 34,
-                              ),
-                            ),
-                            Column(
-                              children: [
-                                Align(
-                                  alignment: AlignmentDirectional(0, 0),
-                                  child: Text(
-                                    '${widget.area.availabilityFourWheelers > 1 ? "Available for four-wheelers" : "Available only one slot left"}',
-                                    style: TextStyle(
-                                      fontFamily: 'Readex Pro',
-                                      letterSpacing: 0,
-                                    ),
-                                  ),
-                                ),
-                                Align(
-                                  alignment: AlignmentDirectional(0, 0),
-                                  child: Text(
-                                    '${widget.area.availabilityTwoWheelers > 1 ? "Available for two-wheelers" : "Available only one slot left"}',
-                                    style: TextStyle(
-                                      fontFamily: 'Readex Pro',
-                                      letterSpacing: 0,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                  ],
+                ),
+                SizedBox(width: 20),
+                Column(children: [
+                    Text(
+                      '${widget.area.availabilityFourWheelers}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
+                        color: widget.area.availabilityFourWheelers < 5
+                            ? Colors.red
+                            : Colors.green,
                       ),
                     ),
-                    SizedBox(
-                      height: 50,
-                    ),
-                    Container(
+                ],),
+              ],
+            ),
+            SizedBox(height: 30.0),
+            Container(
                         child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.max,
@@ -426,27 +266,45 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                           ),
                         ),
                       ],
-                    ))
-                  ],
-                ),
-              )
-            ],
-          ),
+                    ))// Display whether the parking spot is open or closed
+          ],
         ),
       ),
     );
   }
 
-  void _launchMaps() async {
-    final latitude = widget.area.latitude; // Replace with actual latitude
-    final longitude = widget.area.longitude; // Replace with actual longitude
-    final url =
-        'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
+  bool _checkOpenStatus(String workingTime) {
+    List<String> workingHours = workingTime.split(' to ');
+    TimeOfDay openingTime = _parseTimeString(workingHours[0].trim());
+    TimeOfDay closingTime = _parseTimeString(workingHours[1].trim());
 
-    if (await canLaunch(url)) {
-      await launch(url);
+    // Get the current time
+    TimeOfDay currentTime = TimeOfDay.now();
+
+    // Check if the current time is within the working hours
+    return currentTime.hour >= openingTime.hour &&
+        currentTime.hour < closingTime.hour;
+  }
+
+  TimeOfDay _parseTimeString(String timeString) {
+    bool isPM = timeString.toLowerCase().contains('pm');
+    List<String> parts = timeString.replaceAll(RegExp(r'[^0-9]'), '').split('');
+    int hour = int.parse(parts[0]);
+    if (isPM && hour != 12) {
+      hour += 12;
+    } else if (!isPM && hour == 12) {
+      hour = 0;
+    }
+    int minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+  void _navigateToLocation(double latitude, double longitude) async {
+    String googleMapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+    if (await canLaunch(googleMapsUrl)) {
+      await launch(googleMapsUrl);
     } else {
-      throw 'Could not launch $url';
+      print('Could not launch $googleMapsUrl');
     }
   }
 }

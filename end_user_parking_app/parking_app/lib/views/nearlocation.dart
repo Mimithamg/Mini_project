@@ -75,6 +75,7 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
         latitude: doc['location'].latitude,
         longitude: doc['location'].longitude,
         space_id:doc['space_id'],
+        imageUrl: doc['image'],
       ));
     }
   });
@@ -233,8 +234,7 @@ class _NearbyLocationsPageState extends State<NearbyLocationsPage> {
                                  children: [ 
                                 CircleAvatar(
                                   radius: 20,
-                                  backgroundImage:
-                                      AssetImage('assets/parking.png'),
+                                  backgroundImage: NetworkImage(area.imageUrl),
                                 ),
                                 SizedBox(width: 16),
                                 Expanded(
