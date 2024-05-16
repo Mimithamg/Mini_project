@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:parking_app/views/parking_area.dart';
+import 'package:parking_app/views/parkingdetailsscreen.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DetailsReservation extends StatelessWidget {
   final String vehicleNumber;
   final String bookingTime;
   final String vehicleType;
   final String parkingSpaceName;
-
+  final int spaceId;
   const DetailsReservation({
     Key? key,
     required this.vehicleNumber,
     required this.bookingTime,
     required this.vehicleType,
     required this.parkingSpaceName,
+    required this.spaceId,
   }) : super(key: key);
 
   @override
@@ -26,7 +28,7 @@ class DetailsReservation extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.popAndPushNamed(context, '/home');
+             Navigator.popAndPushNamed(context, '/home');
           },
         ),
       ),

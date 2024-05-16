@@ -131,7 +131,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
               children: [
                 Column(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.directions_car,
                       color: Colors.black,
                       size: 40,
@@ -139,7 +139,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                      SizedBox(height: 4.0),
                     Text(
                       '₹${widget.area.feePerHourFourWheelers}/hr',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                       ),
@@ -180,11 +180,11 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                 SizedBox(width: 20),
                 Column(children: [
                     Text(
-                      '${widget.area.availabilityFourWheelers}',
+                      '${widget.area.availabilityTwoWheelers}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 30,
-                        color: widget.area.availabilityFourWheelers < 5
+                        color: widget.area.availabilityTwoWheelers < 5
                             ? Colors.red
                             : Colors.green,
                       ),
@@ -220,7 +220,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                                 borderRadius: BorderRadius.circular(22),
                               ),
                             ),
-                            child: Text(
+                            child: const Text(
                               'Book parking',
                               style: TextStyle(
                                 fontFamily: 'Readex Pro',

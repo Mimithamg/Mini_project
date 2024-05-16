@@ -18,12 +18,11 @@ class _BookingScreenState extends State<BookingScreen> {
   String? _enteredVehicleNumber;
   late DateTime _selectedTime;
   String _enteredVehicleType = ''; // Add vehicle type variable
-  bool _isTwoWheeler = false;
   int? _selectedIndex;
   bool? _isFourWheeler;
   double? _feePerHourFourWheelers;
   double? _feePerHourTwoWheelers;
-
+  
 
   @override
   void initState() {
@@ -55,7 +54,6 @@ class _BookingScreenState extends State<BookingScreen> {
       setState(() {
         _enteredVehicleNumber = vehicleNumber;
         // Check if vehicle is two-wheeler
-        _isTwoWheeler = vehicleNumber.length == 2;
       });
       _vehicleNumberController.clear(); // Clear the text field
     }
@@ -119,75 +117,78 @@ class _BookingScreenState extends State<BookingScreen> {
     _selectedTime = currentTime.add(Duration(minutes: 30 * index));
   }
 
-  void _bookParking() {
-    _addVehicle();
-    print(_enteredVehicleNumber);
-    print(_selectedTime);
-    print(_enteredVehicleType);
-    if (_enteredVehicleNumber != null &&
-        _enteredVehicleNumber!.isNotEmpty &&
-        _selectedTime != null &&
-        _enteredVehicleType.isNotEmpty) {
-      // Check if vehicle type is selected
-      // Proceed with booking
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Confirm Booking'),
-            content: const Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Delay of more than 30 minutes may lead to cancellation of reservation.',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 0, 0, 0),
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                  ),
+ void _bookParking() {
+  _addVehicle();
+  print(_enteredVehicleNumber);
+  print(_selectedTime);
+  print(_enteredVehicleType);
+  
+  // Check if vehicle number and vehicle type are selected
+  if (_enteredVehicleNumber != null &&
+      _enteredVehicleNumber!.isNotEmpty &&
+      _enteredVehicleType.isNotEmpty&&
+      _selectedIndex != null) {
+    // Proceed with booking
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Booking'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Delay of more than 30 minutes may lead to cancellation of reservation.',
+                style: TextStyle(
+                  color: Color.fromARGB(255, 0, 0, 0),
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close the dialog
-                },
-                child: Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close the dialog
-                  _confirmBooking(); // Proceed with booking
-                },
-                child: Text('Book Now'),
               ),
             ],
-          );
-        },
-      );
-    } else {
-      // Show error message if any field is empty
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: const Text(
-            'Please enter a VEHCILE NUMBER , Choose a VEHICLE TYPE and select ENTRY TIME!!!.',
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('OK'),
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+                _confirmBooking(); // Proceed with booking
+              },
+              child: Text('Book Now'),
             ),
           ],
+        );
+      },
+    );
+  } else {
+    // Show error message if any field is empty
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: const Text(
+          'Please enter a VEHICLE NUMBER, choose a VEHICLE TYPE, and select ENTRY TIME.',
         ),
-      );
-    }
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
+}
 
-  void _confirmBooking() {
+
+
+ void _confirmBooking() {
     // Add the booking details to the Firestore collection
     FirebaseFirestore.instance.collection('BOOKING USERS').add({
       'entry_time': Timestamp.fromDate(DateTime.now()),
@@ -205,6 +206,7 @@ class _BookingScreenState extends State<BookingScreen> {
             vehicleType: _enteredVehicleType,
             bookingTime: DateFormat('h:mm a').format(_selectedTime).toString(),
             parkingSpaceName: widget.spaceName,
+            spaceId: widget.spaceId,
           ),
         ),
       );
@@ -214,6 +216,10 @@ class _BookingScreenState extends State<BookingScreen> {
       // Show error message or retry
     });
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {

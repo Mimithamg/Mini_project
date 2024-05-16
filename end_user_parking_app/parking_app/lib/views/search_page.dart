@@ -95,7 +95,7 @@ class _SearchPageState extends State<SearchPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ParkingDetailsScreen(area: area,data:{} ),
+        builder: (context) => ParkingDetailsScreen(area: area,data:const {} ),
       ),
     );
   }

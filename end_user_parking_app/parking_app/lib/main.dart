@@ -7,6 +7,8 @@ import 'package:parking_app/repositary/authentication_repositary.dart';
 import 'package:parking_app/views/account_create_screen.dart';
 import 'package:parking_app/views/home_page.dart';
 import 'package:parking_app/views/loginscreen.dart';
+import 'package:parking_app/views/parkingdetailsscreen.dart';
+import 'package:parking_app/views/search_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
         '/account_creation': (context) =>
             const AccountCreationScreen(), // Use AccountCreationPage class
         '/home': (context) => HomePage(),
-        // Use OtpVerificationPage class
+        '/search':(context) =>SearchPage(),
         // Add more routes as needed
       },
     );
